@@ -87,6 +87,12 @@ h1{font-size:1.2rem;font-weight:700;color:#111827;margin-bottom:3px}
 #sheet-network .note{font-size:.7rem;color:#9ca3af;text-align:center;margin-top:10px}
 /* Override network wrap to not re-add border (card provides it) */
 #sheet-network #net-wrap{border-radius:8px}
+
+#net-controls{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:5px;z-index:10}
+#net-controls button{width:34px;height:34px;border-radius:8px;border:1.5px solid #e5e7eb;background:#fff;font-size:17px;font-weight:700;cursor:pointer;color:#374151;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+#net-controls button:hover{background:#f3f4f6;border-color:#9ca3af}
+#net-graph{cursor:grab}
+#net-graph.dragging{cursor:grabbing}
 </style>
 </head>
 <body>
@@ -117,7 +123,7 @@ h1{font-size:1.2rem;font-weight:700;color:#111827;margin-bottom:3px}
     <div class="leg-item"><div class="leg-circle" style="background:#DC2626;border:2px solid #dc2626;width:14px;height:14px;border-radius:50%"></div> Cyberstarts exit (red ring)</div>
     <div class="leg-item"><div style="width:28px;height:2px;border-top:2px dashed #D44F00;margin:0 2px"></div> Acquired by Google</div>
   </div>
-  <div id="net-wrap" style="position:relative"><svg id="net-graph"></svg><div id="net-tip"></div></div>
+  <div id="net-wrap" style="position:relative"><svg id="net-graph"></svg><div id="net-tip"></div><div id="net-controls"><button id="nc-in" title="Zoom in">+</button><button id="nc-out" title="Zoom out">−</button><button id="nc-reset" title="Reset" style="font-size:13px">↺</button></div></div>
   <p class="note">Acquirer node size = total deal value &nbsp;·&nbsp; Dashed arrow: Wiz &rarr; Google ($32B)</p>
     </div>
   </div>
@@ -587,6 +593,38 @@ function initNetwork(){
 
   svg.appendChild(mk('rect',{width:W,height:H,fill:'#f8fafc'}));
 
+  // ── Zoom / pan viewport ────────────────────────────────────────────────────
+  var vp = mk('g',{});
+  svg.appendChild(vp);
+  var _z=1, _px=0, _py=0, _drag=false, _ds={x:0,y:0}, _ps={x:0,y:0};
+  function applyT(){ vp.setAttribute('transform','translate('+_px+','+_py+') scale('+_z+')'); }
+
+  svg.addEventListener('wheel', function(e){
+    e.preventDefault();
+    var rect=svg.getBoundingClientRect(), sc=W/rect.width;
+    var mx=(e.clientX-rect.left)*sc, my=(e.clientY-rect.top)*sc;
+    var f=e.deltaY<0?1.18:1/1.18, nz=Math.max(0.25,Math.min(10,_z*f));
+    _px=mx-(_mx=mx-_px)*(nz/_z); _py=my-(_my=my-_py)*(nz/_z); _z=nz; applyT();
+  },{passive:false});
+  svg.addEventListener('mousedown',function(e){
+    if(e.button!==0)return; _drag=true; _ds={x:e.clientX,y:e.clientY}; _ps={x:_px,y:_py};
+    svg.classList.add('dragging');
+  });
+  window.addEventListener('mousemove',function(e){
+    if(!_drag)return;
+    var rect=svg.getBoundingClientRect(), sc=W/rect.width;
+    _px=_ps.x+(e.clientX-_ds.x)*sc; _py=_ps.y+(e.clientY-_ds.y)*sc; applyT();
+  });
+  window.addEventListener('mouseup',function(){ _drag=false; svg.classList.remove('dragging'); });
+
+  // Button controls (wired after DOM ready)
+  setTimeout(function(){
+    var zi=document.getElementById('nc-in'), zo=document.getElementById('nc-out'), zr=document.getElementById('nc-reset');
+    if(zi){ zi.onclick=function(){ _z=Math.min(10,_z*1.3); applyT(); }; }
+    if(zo){ zo.onclick=function(){ _z=Math.max(0.25,_z/1.3); applyT(); }; }
+    if(zr){ zr.onclick=function(){ _z=1;_px=0;_py=0; applyT(); }; }
+  },0);
+
   // Groups for hover highlighting
   var groups = {};
   clusters.forEach(function(c){ groups[c.name]=[]; });
@@ -611,7 +649,7 @@ function initNetwork(){
       var line=mk('line',{x1:x1,y1:y1,x2:x2,y2:y2,
         stroke:col(c.name),'stroke-width':'1.1','stroke-opacity':'0.3'});
       groups[c.name].push(line);
-      svg.appendChild(line);
+      vp.appendChild(line);
     });
   });
 
@@ -625,7 +663,7 @@ function initNetwork(){
       stroke:col('Google'),'stroke-width':'2.5','stroke-opacity':'0.72',
       'stroke-dasharray':'7,4','marker-end':'url(#netarr)'});
     [A2A.from,A2A.to].forEach(function(n){if(groups[n])groups[n].push(aLine);});
-    svg.appendChild(aLine);
+    vp.appendChild(aLine);
     // Value badge on midpoint
     var mx=(x1+x2)/2, my=(y1+y2)/2;
     var bg=mk('rect',{x:mx-18,y:my-9,width:36,height:16,rx:'5',
@@ -633,7 +671,7 @@ function initNetwork(){
     var lbl=mk('text',{x:mx,y:my+1,'text-anchor':'middle','dominant-baseline':'middle',
       fill:col('Google'),'font-size':'8.5','font-weight':'700','font-family':'inherit'},A2A.label);
     [A2A.from,A2A.to].forEach(function(n){if(groups[n]){groups[n].push(bg);groups[n].push(lbl);}});
-    svg.appendChild(bg); svg.appendChild(lbl);
+    vp.appendChild(bg); vp.appendChild(lbl);
   }
 
   /* ── Draw: target nodes ──────────────────────────────────────────── */
@@ -663,7 +701,7 @@ function initNetwork(){
       g.addEventListener('mousemove', moveTip);
       g.addEventListener('mouseleave',function(){highlight(null);hideTip();});
       groups[c.name].push(g);
-      svg.appendChild(g);
+      vp.appendChild(g);
     });
   });
 
@@ -695,7 +733,7 @@ function initNetwork(){
     g.addEventListener('mousemove', moveTip);
     g.addEventListener('mouseleave',function(){highlight(null);hideTip();});
     groups[c.name].push(g);
-    svg.appendChild(g);
+    vp.appendChild(g);
   });
 
   /* ── Tooltip ─────────────────────────────────────────────────────── */
