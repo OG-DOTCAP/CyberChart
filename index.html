@@ -483,18 +483,23 @@ function initNetwork(){
     acqMap[d.a].deals.push(d);
   });
   // Google gets the Wiz A2A value added to its total for node sizing
-  if (acqMap[A2A.to]) acqMap[A2A.to].total += A2A.v;
+  if (acqMap[A2A.to])   acqMap[A2A.to].total += A2A.v;          // Google gets full $32B
+  if (acqMap[A2A.from]) acqMap[A2A.from].total += 4000;          // Wiz gets $4B display bump (reflects big exit)
 
   /* ── Radius scale (unified: acquirer total & target deal value) ───── */
   var allVals = Object.values(acqMap).map(function(a){return a.total;})
     .concat(DEALS.map(function(d){return d.v;}));
   var MAX_V = Math.max.apply(null, allVals);
-  function nr(v) { return 6 + 54 * Math.sqrt(v / MAX_V); }
+  function nr(v) { return 6 + 52 * Math.pow(v / MAX_V, 0.38); }
 
   /* ── Compute cluster bounding radius ─────────────────────────────── */
   var clusters = Object.values(acqMap).map(function(a) {
     var ra = nr(a.total);
-    var targets = a.deals.map(function(d){ return {deal:d, r:nr(d.v)}; });
+    var targets = a.deals.map(function(d){
+      // Cap CyberArk display size — it's a mega-deal but shouldn't dwarf everything
+      var dv = (d.target === 'CyberArk') ? Math.min(d.v, 2500) : d.v;
+      return {deal:d, r:nr(dv)};
+    });
     // Each target sits at orbit = ra + 20 + target_r (tangent + gap)
     // Cluster bounding radius = max orbit + max target_r
     var maxTgtR = targets.length ? Math.max.apply(null, targets.map(function(t){return t.r;})) : 0;
@@ -512,6 +517,19 @@ function initNetwork(){
     c.cx = CX + r * Math.cos(i * GOLDEN);
     c.cy = CY + r * Math.sin(i * GOLDEN);
   });
+
+  // Pull Wiz cluster close to Google (A2A relationship)
+  (function() {
+    var wizC = clusters.filter(function(c){return c.name==="Wiz";})[0];
+    var goC  = clusters.filter(function(c){return c.name==="Google";})[0];
+    if (wizC && goC) {
+      var dx=goC.cx-wizC.cx, dy=goC.cy-wizC.cy;
+      var dist=Math.sqrt(dx*dx+dy*dy)||1;
+      var target=wizC.clusterR+goC.clusterR+24;
+      wizC.cx=goC.cx-(dx/dist)*target;
+      wizC.cy=goC.cy-(dy/dist)*target;
+    }
+  })();
 
   // 120 iterations to separate clusters cleanly
   for (var iter = 0; iter < 120; iter++) {
