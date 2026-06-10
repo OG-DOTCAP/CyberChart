@@ -536,20 +536,28 @@ function initNetwork(){
 
   /* ── Label fitting ───────────────────────────────────────────────── */
   function fitLabel(name, r) {
-    var CW=0.58, MIN=7, maxW=r*1.5, words=name.split(' ');
-    var fs1 = Math.min(r*0.58, maxW/(name.length*CW), 15);
+    // CW = avg char width / fontSize; MIN = minimum readable px; maxW = usable diameter
+    var CW=0.50, MIN=6, maxW=r*1.8, words=name.split(' ');
+    // 1. Single line
+    var fs1 = Math.min(r*0.68, maxW/(name.length*CW), 15);
     if (fs1 >= MIN) return [{text:name, fs:fs1, dy:0}];
+    // 2. Two lines
     if (words.length >= 2) {
       var m=Math.ceil(words.length/2), l1=words.slice(0,m).join(' '), l2=words.slice(m).join(' ');
-      var fs2 = Math.min(r*0.42, maxW/(Math.max(l1.length,l2.length)*CW), 12);
-      if (fs2 >= MIN) return [{text:l1,fs:fs2,dy:-fs2*0.6},{text:l2,fs:fs2,dy:fs2*0.6}];
+      var fs2 = Math.min(r*0.50, maxW/(Math.max(l1.length,l2.length)*CW), 13);
+      if (fs2 >= MIN) return [{text:l1,fs:fs2,dy:-fs2*0.58},{text:l2,fs:fs2,dy:fs2*0.58}];
     }
+    // 3. Three lines (long multi-word names)
     if (words.length >= 3) {
       var th=Math.ceil(words.length/3);
       var ls=[words.slice(0,th).join(' '),words.slice(th,th*2).join(' '),words.slice(th*2).join(' ')];
-      var fs3=Math.min(r*0.32,maxW/(Math.max.apply(null,ls.map(function(x){return x.length;}))*CW),10);
-      if (fs3 >= MIN) return ls.map(function(tx,i){return {text:tx,fs:fs3,dy:(i-1)*fs3*1.2};});
+      var maxL=Math.max.apply(null,ls.map(function(x){return x.length;}));
+      var fs3=Math.min(r*0.38, maxW/(maxL*CW), 10);
+      if (fs3 >= MIN) return ls.map(function(tx,i){return {text:tx,fs:fs3,dy:(i-1)*fs3*1.15};});
     }
+    // 4. First word only (fallback for tiny dots with long names)
+    var fw=words[0], fsfw=Math.min(r*0.68, maxW/(fw.length*CW), 12);
+    if (fsfw >= MIN) return [{text:fw, fs:fsfw, dy:0}];
     return null;
   }
 
