@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Israeli Cyber: Exits &amp; Valuations</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f3f4f6;display:flex;justify-content:center;align-items:flex-start;padding:28px 16px;min-height:100vh}
+.card{background:#fff;border-radius:16px;box-shadow:0 2px 20px rgba(0,0,0,.1);padding:28px 32px 20px;max-width:1080px;width:100%}
+h1{font-size:1.2rem;font-weight:700;color:#111827;margin-bottom:3px}
+.sub{font-size:.78rem;color:#6b7280;margin-bottom:18px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.leg{display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 12px;border-radius:20px;border:1.5px solid #e5e7eb;background:#fff;font-size:.76rem;font-weight:500;color:#374151;transition:opacity .15s,border-color .15s;user-select:none}
+.leg:hover{border-color:#9ca3af}
+.leg.off{opacity:.35}
+.dot-icon{width:11px;height:11px;border-radius:50%;flex-shrink:0;border:1.5px solid rgba(0,0,0,.18)}
+#wrap{position:relative}
+svg{width:100%;height:auto;display:block;overflow:visible}
+.gridline{stroke:#e5e7eb;stroke-width:1}
+.axisline{stroke:#9ca3af;stroke-width:1}
+.tick-label{font-size:11px;fill:#6b7280;font-family:inherit}
+.axis-title{font-size:11.5px;fill:#374151;font-weight:600;font-family:inherit}
+.round-label{font-size:11.5px;fill:#374151;font-weight:600;font-family:inherit}
+.dot{cursor:pointer;transition:opacity .1s}
+.dot:hover{opacity:1!important}
+.company-label{font-size:9px;font-family:inherit;font-weight:700;pointer-events:none}
+#tip{position:absolute;background:rgba(17,24,39,.94);color:#f9fafb;border-radius:10px;padding:10px 13px;font-size:11.5px;line-height:1.6;pointer-events:none;opacity:0;transition:opacity .1s;z-index:20;max-width:270px;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+#tip b{display:block;font-size:12px;color:#fff;margin-bottom:3px}
+#tip .tr{display:flex;gap:10px;justify-content:space-between}
+#tip .tl{color:#9ca3af}
+#tip .tv{color:#f9fafb;font-weight:500;text-align:right}
+#tip .vt{color:#d1d5db;font-size:10px;margin-top:4px;font-style:italic}
+.note{font-size:.7rem;color:#9ca3af;text-align:center;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Israeli Cyber: Exits &amp; Last-Round Valuations</h1>
+  <p class="sub">Cyberstarts portfolio (red/blue) vs. broader Israeli cyber market (grey). Excludes &gt;$10B.</p>
+  <div class="legend">
+    <div class="leg" data-cat="other_active"><span class="dot-icon" style="background:#D1D5DB;border-color:#9ca3af"></span>Other Active</div>
+    <div class="leg" data-cat="other_exit"><span class="dot-icon" style="background:#4B5563;border-color:#374151"></span>Other Exited</div>
+    <div class="leg" data-cat="cs_exit"><span class="dot-icon" style="background:#DC2626;border-color:#991b1b"></span>Cyberstarts Exited</div>
+    <div class="leg" data-cat="cs_active"><span class="dot-icon" style="background:#2563EB;border-color:#1e40af"></span>Cyberstarts Active</div>
+  </div>
+  <div id="wrap">
+    <svg id="chart" viewBox="0 0 1000 570" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="tip"></div>
+  </div>
+  <p class="note">Click legend to toggle categories &nbsp;·&nbsp; Hover dots for details</p>
+</div>
+<script>
+const RAW = [
+{"company":"Savvy Security Ltd.","round":"Series A","ri":1,"v":1,"cat":"cs_exit","exit_type":"Acquired","year":2025,"tv":"Security, SaaS Security, Cyber Security"},
+{"company":"ProtectOnce","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"SaaS Security, Data Security, AI, Cyber Security, Cloud Security, API"},
+{"company":"Dazz Cloud Ltd.","round":"Series B","ri":2,"v":450,"cat":"cs_exit","exit_type":"Acquired","year":2024,"tv":"Cloud Security, Cyber Security, DevOps, DevSecOps, Vulnerability Management, Threat Intelligence, AI"},
+{"company":"Trail Security Ltd.","round":"Seed","ri":0,"v":162,"cat":"cs_exit","exit_type":"Acquired","year":2024,"tv":"Security, AI, Machine Learning, Cyber Security, Data Privacy, Cloud Security, Data Security"},
+{"company":"SageCyber Ltd.","round":"Seed","ri":0,"v":5,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Security, Cyber Security, Artificial Intelligence"},
+{"company":"Noname Gate Ltd. (Noname Security)","round":"Series C","ri":3,"v":450,"cat":"cs_exit","exit_type":"Acquired","year":2024,"tv":"Cyber Security, API, Application Security, AI, Cloud, Generative AI, DSPM, Security"},
+{"company":"Avalor Technologies Ltd.","round":"Series A","ri":1,"v":350,"cat":"cs_exit","exit_type":"Acquired","year":2024,"tv":"Network Security, Cyber Security, Vulnerability Management, Security"},
+{"company":"Bionic Inc.","round":"Series B","ri":2,"v":264,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Security, Automation, DevOps, Risk Analysis, Cloud, Cyber Security"},
+{"company":"AtmoSec Ltd.","round":"Seed","ri":0,"v":5,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"SASE, Anomaly Detection, Monitoring, Risk Assessment, Cyber Security, SaaS, AI, Security"},
+{"company":"Crusoe Security Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Security, Cyber Security"},
+{"company":"Axis Cyber Security Ltd.","round":"Series C","ri":3,"v":500,"cat":"cs_exit","exit_type":"Acquired","year":2023,"tv":"Cloud, Cyber Security, Identity & Access Management, Security, SASE"},
+{"company":"ConSienta Ltd.","round":"Seed","ri":0,"v":2,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Cyber Awareness Training, Cyber Security, EdTech, SecOps, Security"},
+{"company":"Privatise Ltd.","round":"Seed","ri":0,"v":3,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Security, Firewall, Encryption, Cyber Security, Cloud, AI, Network Security"},
+{"company":"SignBuy","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Authentication, Biometrics, Cyber Security, FinTech, Fraud Detection, Security, IAM"},
+{"company":"Amplicy Ltd.","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Risk Analysis, Threat Intelligence, Cyber Security, Security"},
+{"company":"Merlinx Ltd.","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Security, Cyber Security, SecOps"},
+{"company":"Trustdome Ltd.","round":"Seed","ri":0,"v":40,"cat":"cs_exit","exit_type":"Acquired","year":2021,"tv":"Cyber Security, Security, Cloud, Cloud Security, Access Management, IAM"},
+{"company":"Cyberfish Ltd.","round":"Seed","ri":0,"v":100,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"SoC, API, Computer Vision, Cyber Security, Security, AI, Privacy Tech, Machine Learning, Anti-Phishing, E-mail Security, Anti-Fraud"},
+{"company":"Root Networks Ltd.","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"Security, Cyber Security, Network Security"},
+{"company":"Segasec Labs Ltd.","round":"Series A","ri":1,"v":40,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"Anti-Phishing, Cyber Security, Security"},
+{"company":"Whitebox Security Ltd.","round":"Series A","ri":1,"v":25,"cat":"other_exit","exit_type":"Acquired","year":2015,"tv":"Security, Analytics, Cyber Security, Data Governance, ERP, Intelligent IAG"},
+{"company":"Sentry CS Ltd. (Sentrycs)","round":"Seed","ri":0,"v":225,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Detection, Drones, Interception, Physical Security, UAV, RF Technology, Anti-Drone, Security, Homeland Security, Cyber Security, Counter UAV, Defense Tech, Military, Threat Intelligence"},
+{"company":"Sygnia Consulting Ltd.","round":"Seed","ri":0,"v":250,"cat":"other_exit","exit_type":"Acquired","year":2018,"tv":"Incident Response, Threat-Detection, Cloud Security, Web Security, Security Testing, Cyber Security, Network Security"},
+{"company":"HighIoT Ltd. (Akita)","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Web Security, Network Security, Security, Automotive, Cyber Security, IoT, Blockchain, Machine Learning, Smart Home, Cloud"},
+{"company":"Hyperwise Security Ltd.","round":"Seed","ri":0,"v":80,"cat":"other_exit","exit_type":"Acquired","year":2015,"tv":"Security, Cyber Security"},
+{"company":"CyActive Ltd.","round":"Seed","ri":0,"v":65,"cat":"other_exit","exit_type":"Acquired","year":2015,"tv":"Cyber Security, Endpoint Security, Enterprise, Network protection, SCADA, Security"},
+{"company":"TowerSec Ltd.","round":"Series A","ri":1,"v":75,"cat":"other_exit","exit_type":"Acquired","year":2016,"tv":"Automotive, Connected Car, Cyber Security, IoT, Security"},
+{"company":"Tufin Software Technologies Ltd.","round":"Series D","ri":4,"v":570,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Security, Cyber Security, Enterprise Network Security, Firewall Management, Monitoring, Cloud, Forensics, Automation, Risk Analysis"},
+{"company":"Tufin Software Technologies Ltd.","round":"Series D","ri":4,"v":108,"cat":"other_exit","exit_type":"IPO","year":2019,"tv":"Security, Cyber Security, Enterprise Network Security, Firewall Management, Monitoring, Cloud, Forensics, Automation, Risk Analysis"},
+{"company":"Portshift Software Technologies Ltd.","round":"Seed","ri":0,"v":100,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"Cloud Security, Application Security, Orchestration, Cloud, Security, Cyber Security"},
+{"company":"Paragon Solutions Ltd.","round":"Series A","ri":1,"v":500,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Public Safety, Threat Intelligence, Defense Tech, Data Analytics, Surveillance, Encryption, Intelligence, Mobile Security, Security, Cyber Security"},
+{"company":"Cobwebs Technologies Ltd.","round":"Series A","ri":1,"v":200,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Cyber Security, OSINT, Security, Intelligence, Big Data, Machine Learning, Analysis, AI, Defense Tech, Data Analytics"},
+{"company":"Alterya IO Ltd.","round":"Seed","ri":0,"v":160,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Blockchain, DeFi, Web3, FinTech, API, Data Infrastructure, Security, Cyber Security, Fraud Detection, Fraud Prevention, Digital Wallet, Cryptocurrency"},
+{"company":"Luminate Security Ltd.","round":"Series A","ri":1,"v":225,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Deep Learning, Information Security, Cyber Security, SaaS, SaaS Security, Cloud, Security"},
+{"company":"BitDam Ltd.","round":"Series A","ri":1,"v":50,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"E-mail Security, Cyber Security, Defense Tech, Protection, Web Security, Security"},
+{"company":"Argus Cyber Security Ltd.","round":"Series A","ri":1,"v":430,"cat":"other_exit","exit_type":"Acquired","year":2017,"tv":"Automotive, Autonomous Vehicles, Connected Car, Cyber Security, IoT, Transport, Security, Mobility Tech"},
+{"company":"XM Cyber Ltd.","round":"Series B","ri":2,"v":700,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Penetration Testing, Vulnerability Management, Risk Management, Security, Cyber Security, Cloud Security"},
+{"company":"Aorato Ltd.","round":"Series A","ri":1,"v":156,"cat":"other_exit","exit_type":"Acquired","year":2014,"tv":"Security, Access Control, APT, Cyber Security, Firewall, Forensics, Identity, Network, IAM"},
+{"company":"Flow Security Ltd.","round":"Seed","ri":0,"v":210,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Security, Cloud, Data Privacy, Data Security, Cloud Security, DSPM, AI, Generative AI, Data Storage, Cyber Security"},
+{"company":"Seekret Software Security Ltd.","round":"Seed","ri":0,"v":70,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"PLG, API, Cyber Security, Security"},
+{"company":"SimplexCC Ltd. (Simplex)","round":"Series B","ri":2,"v":250,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Security, PayTech, Web3, Bitcoin, Blockchain, Cryptocurrency, Cyber Security, FinTech, Forex, Online Trading Platform, Payments, Web Platform, Machine Learning, Fraud Detection, AI"},
+{"company":"Aim Security Ltd.","round":"Series A","ri":1,"v":350,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Security, Cyber Security, Data Infrastructure, Productivity, Generative AI, AI, SaaS"},
+{"company":"Apex Security Ltd.","round":"Seed","ri":0,"v":105,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"AI, Cyber Security, Risk Assessment, Generative AI, AI Security, Security"},
+{"company":"Silk Security Inc.","round":"Seed","ri":0,"v":150,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Security, Cyber Security, DevSecOps, AI"},
+{"company":"CloudEndure Ltd.","round":"Series B","ri":2,"v":200,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Cyber Security, DevOps, Enterprise Applications"},
+{"company":"Spera Cybersecurity Ltd.","round":"Seed","ri":0,"v":115,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Cyber Security, Network Security, Analysis, Identity Management, Security"},
+{"company":"GK8 Ltd.","round":"Series A","ri":1,"v":115,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Network Security, Banking Tech, Cryptocurrency, Cyber Security, Blockchain, FinTech, Data Analytics, Web3, NFT, Digital Assets"},
+{"company":"GK8 Ltd.","round":"Series A","ri":1,"v":44,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Network Security, Banking Tech, Cryptocurrency, Cyber Security, Blockchain, FinTech, Data Analytics, Web3, NFT, Digital Assets"},
+{"company":"Lightspin Technologies Ltd.","round":"Series A","ri":1,"v":225,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Cyber Security, AI, Cloud Security, Security"},
+{"company":"Bridgecrew Technologies Ltd.","round":"Series A","ri":1,"v":200,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Security, Open Source, Development Tools, PLG, Cloud, Cyber Security"},
+{"company":"ForceNock Security Ltd.","round":"Seed","ri":0,"v":10,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Cyber Security, Security, AI"},
+{"company":"Chameleonx Ltd.","round":"Series A","ri":1,"v":20,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Online Advertising, AdTech, Digital Media, Entertainment, Cyber Security, Marketing Tech"},
+{"company":"Gem Security Ltd.","round":"Series A","ri":1,"v":350,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Cloud, Threat Intelligence, Detection, Cloud Security, Cyber Security, SecOps, Behavior Analytics, Security"},
+{"company":"Entitle IO Ltd.","round":"Seed","ri":0,"v":150,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Security, Cloud, Cyber Security, Cloud Security, Identity & Access Management, IT Automation"},
+{"company":"RapidSec Ltd.","round":"Seed","ri":0,"v":5,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"SaaS, AI, Cyber Security, Security"},
+{"company":"HUB Security Ltd.","round":"Series A","ri":1,"v":50,"cat":"other_exit","exit_type":"IPO","year":2021,"tv":"Threat Intelligence, AI, Cloud, Hardware, Cyber Security, Blockchain, Authentication, Encryption, Quantum Technology, Blockchain Security, Cloud Security, Security, GRC, Incident Response, Compliance Tech, Data Protection"},
+{"company":"Xpandion Ltd.","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Cloud, Cyber Security, authorization, ERP, GRC, GRC Compliance, Monitoring, Security, SOX Compliance, Enterprise Applications, Data Protection"},
+{"company":"Protego Labs Ltd.","round":"Series A","ri":1,"v":40,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Security, Cyber Security, Cloud, Cloud Security, Serverless, Data Protection, Encryption, GRC, Risk and Compliance, SaaS"},
+{"company":"Unbotify Ltd.","round":"Series A","ri":1,"v":20,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Security, Anti-Scraping, Cyber Security, DDoS attacks, Machine Learning, Web Security, AI, Bots, Anti-Fraud"},
+{"company":"Skycure Inc.","round":"Series B","ri":2,"v":275,"cat":"other_exit","exit_type":"Acquired","year":2017,"tv":"Cyber Security, Firewall, Mobile Security, Security"},
+{"company":"Armis Security Ltd.","round":"Series C","ri":3,"v":1100,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"Industry 4.0, SaaS, AI, Machine Learning, Risk Management, Network Security, Information Technology, Cyber Security, IoT, Security, Cloud Security, Wireless security"},
+{"company":"Armis Security Ltd.","round":"Series E","ri":5,"v":7750,"cat":"other_exit","exit_type":"Acquired","year":2026,"tv":"Industry 4.0, SaaS, AI, Machine Learning, Risk Management, Network Security, Information Technology, Cyber Security, IoT, Security, Cloud Security, Wireless security"},
+{"company":"Spectral Cyber Technologies Ltd.","round":"Seed","ri":0,"v":60,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Security, AI, Cyber Security, Application Security"},
+{"company":"Secdo Ltd.","round":"Series A","ri":1,"v":100,"cat":"other_exit","exit_type":"Acquired","year":2018,"tv":"Cyber Security, Forensics, Incident Response, Network Security, Cyber Forensic, Security"},
+{"company":"ForeScout Technologies Inc.","round":"Series F","ri":6,"v":1430,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"Security, Cyber Security, IoT, Mobile Security, Network Access Control (NAC), Network Security"},
+{"company":"ForeScout Technologies Inc.","round":"Series F","ri":6,"v":124,"cat":"other_exit","exit_type":"IPO","year":2017,"tv":"Security, Cyber Security, IoT, Mobile Security, Network Access Control (NAC), Network Security"},
+{"company":"Cybellum Technologies Ltd.","round":"Series A","ri":1,"v":140,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Security, Anti-Hacking, Cyber Security, Industry 4.0, IoT, Risk Assessment, Vulnerability Management, Connectivity, Automotive"},
+{"company":"Seraphic Algorithms Ltd.","round":"Series A","ri":1,"v":341.3,"cat":"other_exit","exit_type":"Acquired","year":2026,"tv":"Cyber Security, Phishing, Governance, Security, Network Security, AI Security, SaaS Security, Endpoint Security, DLP"},
+{"company":"Cyata Security Ltd.","round":"Seed","ri":0,"v":75,"cat":"other_exit","exit_type":"Acquired","year":2026,"tv":"Security, Agentic AI, AI Security, IAM, AI Infrastructure, Cyber Security, AI"},
+{"company":"CyArx Technologies Ltd. (Siemplify)","round":"Series C","ri":3,"v":500,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Forensics, Anomaly Detection, Cyber Security, Data Visualization, Network Security, Orchestration, Automation, Security, SecOps, AI"},
+{"company":"Apolicy.IO Inc.","round":"Seed","ri":0,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Cyber Security, Risk Analysis, Cloud, GRC, Security, SaaS, Cloud Security"},
+{"company":"Koi Security Ltd.","round":"Series A","ri":1,"v":400,"cat":"other_exit","exit_type":"Acquired","year":2026,"tv":"AI, Cyber Security, Large Language Model (LLM), Agentic AI, Endpoint Security"},
+{"company":"FireGlass Ltd.","round":"Series A","ri":1,"v":250,"cat":"other_exit","exit_type":"Acquired","year":2017,"tv":"BYOD, Cyber Security, Data Security, Network, Network Security, Risk, Web Security, Security"},
+{"company":"CloudLock Ltd.","round":"Series B","ri":2,"v":293,"cat":"other_exit","exit_type":"Acquired","year":2016,"tv":"Security, Cloud, Access Management, Compliance Tech, Cyber Security, Data loss prevention, Data Security, DLP, Firewall, Google Apps, SaaS"},
+{"company":"Demisto Inc.","round":"Series C","ri":3,"v":560,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Security, Forensics, Cyber Security, SoC, AI"},
+{"company":"Medigate Tech Ltd.","round":"Series B","ri":2,"v":400,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Medical Devices, Healthtech, Network Security, IoT, Cyber Security, Insurtech, Risk, Threat-Detection, Security"},
+{"company":"FireLayers Ltd.","round":"Series A","ri":1,"v":55,"cat":"other_exit","exit_type":"Acquired","year":2016,"tv":"Cyber Security, Security"},
+{"company":"Prompt Security Inc.","round":"Series A","ri":1,"v":180,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Cyber Security, AI, Generative AI, LLM, Data Infrastructure, AI Security, Vulnerability Management, Agentic AI, Security, LegalTech"},
+{"company":"Dig Security Solutions Ltd.","round":"Series A","ri":1,"v":350,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Cyber Security, Cloud, Data Security, Cloud Security, Analysis, Monitoring, DSPM, Detection, Security"},
+{"company":"Cider Security Ltd.","round":"Series A","ri":1,"v":295,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Security, Cyber Security, Application Security, DevOps"},
+{"company":"Ayehu Software Technologies Ltd.","round":"Series B","ri":2,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Enterprise Applications, Machine Learning, Cyber Security, DevOps, IT Automation, Monitoring tools, Forensics, AI, SecOps"},
+{"company":"Solebit Labs Ltd.","round":"Series A","ri":1,"v":100,"cat":"other_exit","exit_type":"Acquired","year":2018,"tv":"Security, prevention, Zero Day, E-mail Security, Web Security, Network Security, Cyber Security"},
+{"company":"Axiom Security Ltd.","round":"Seed","ri":0,"v":75,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Access Management, IAM, Security, AI, Cyber Security, DevOps"},
+{"company":"ArgonSec Ltd.","round":"Seed","ri":0,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Security, Cyber Security"},
+{"company":"Hexadite Ltd.","round":"Series A","ri":1,"v":75,"cat":"other_exit","exit_type":"Acquired","year":2017,"tv":"Security, Forensics, Cyber Security"},
+{"company":"Polar Security Ltd.","round":"Seed","ri":0,"v":60,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Security, Cyber Security, DSPM, Cloud Security, Automation, Data Security, Data Privacy, Compliance Tech"},
+{"company":"Adaptive Shield Ltd.","round":"Series A","ri":1,"v":300,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Security, SaaS, SaaS Security, Cyber Security, Cloud, Analysis, Cloud Security, Threat Intelligence, Generative AI, Identity Authentication"},
+{"company":"Cybint Solutions Ltd.","round":"Series A","ri":1,"v":50,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Training, LegalTech, EdTech, Business Analytics, Cyber Security, Security"},
+{"company":"Avanan Research & Information Security Ltd.","round":"Series B","ri":2,"v":275,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Cloud Security, Cyber Security, Data leakage prevention, Malware APT Protection, Mobile Security, AI, Security"},
+{"company":"Twistlock Ltd.","round":"Series C","ri":3,"v":410,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Security, Cloud Security, Cyber Security, Data Protection, DevOps, Docker, PaaS, Virtual Containers, Vulnerability Management"},
+{"company":"Cognigo Ltd.","round":"Series B","ri":2,"v":70,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Cyber Security, Data Protection, Machine Learning, Security, AI, Privacy Tech"},
+{"company":"LEVL Technologies Ltd.","round":"Seed","ri":0,"v":50,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"AI, IoT, Security, Authentication, Cyber Security"},
+{"company":"imVision Software Technologies Ltd.","round":"Series B","ri":2,"v":50,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Anomaly Detection, Cyber Security, Infrastructure Network, IoT, Machine Learning, Network Security, NFV, SDN, Security, Telecommunications, Virtualization, Forensics, AI, FinTech, Automotive, NLP, API"},
+{"company":"Cyclops Security Ltd.","round":"Series A","ri":1,"v":75,"cat":"other_exit","exit_type":"Acquired","year":2026,"tv":"Cyber Security, Contextual Search, AI, Generative AI, Deep Learning, NLP, Machine Learning, Risk Management, Threat Intelligence, Cloud Security, SecOps, Security"},
+{"company":"Odo Security Ltd.","round":"Seed","ri":0,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"Cyber Security, Network Security, Security"},
+{"company":"Dome9 Security Ltd.","round":"Series D","ri":4,"v":175,"cat":"other_exit","exit_type":"Acquired","year":2018,"tv":"LegalTech, Cloud, Cyber Security, Network Security, SaaS, Virtualization, Security"},
+{"company":"GuardiCore Ltd.","round":"Series C","ri":3,"v":600,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Security, Cyber Security, Data Centers, Deception, Network Security, SDN, Cloud Security, Endpoint Security"},
+{"company":"PureSec Ltd.","round":"Series A","ri":1,"v":55,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Cyber Security, Serverless, Cloud, Security, Function as a Service (FaaS)"},
+{"company":"Adallom Technologies Ltd.","round":"Series B","ri":2,"v":260,"cat":"other_exit","exit_type":"Acquired","year":2015,"tv":"Compliance Tech, Cyber Security, Information Security, SaaS, SaaS Security, CASB, Security"},
+{"company":"Pynt Inc.","round":"Seed","ri":0,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2026,"tv":"Software Testing, DevSecOps, Development Tools, Security, API, Cyber Security, Network Security"},
+{"company":"Unbound Security Ltd.","round":"Series B","ri":2,"v":175,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Security, Data Protection, Cryptography, Cyber Security, Encryption, Mobile Security, Network Security, Passwords Protection, Web3, Blockchain, FinTech, Industry 4.0, GRC, Privacy Protection"},
+{"company":"Build Security Ltd.","round":"Seed","ri":0,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Security, API, Cyber Security"},
+{"company":"Loom Systems Ltd.","round":"Series B","ri":2,"v":80,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"Security, Big Data, Business Analytics, Machine Learning, Cyber Security, AI, Analysis, Monitoring"},
+{"company":"Talon Cyber Security Ltd.","round":"Series A","ri":1,"v":625,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Cyber Security, AI, Cloud Security, Generative AI, End Point Security, Authentication, Security"},
+{"company":"IntSights Cyber Intelligence Ltd.","round":"Series D","ri":4,"v":335,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Security, Cyber Security, Data Analytics, Industry 4.0, Threat Intelligence, Vulnerability Management"},
+{"company":"First Digital Assets Group","round":"Series A","ri":1,"v":100,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"DevOps, Web3, FinTech, Digital Assets, Cryptocurrency, Marketing Tech, Cyber Security, Blockchain"},
+{"company":"VDOO Connected Trust Ltd.","round":"Series B","ri":2,"v":300,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Cyber Security, IoT, AI, Security, Deep Tech, Industry 4.0, Smart City"},
+{"company":"Revrod Ltd.","round":"Seed","ri":0,"v":25,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Enterprise Applications, AI, Agentic AI, SoC, Cyber Security, Automation, SecOps"},
+{"company":"Canonic Security Technologies Ltd.","round":"Seed","ri":0,"v":25,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Cyber Security, Monitoring, SaaS, Governance, Vulnerability Assessment, Risk, Threat-Detection, Security"},
+{"company":"Astrix Security Ltd.","round":"Series B","ri":2,"v":350,"cat":"other_exit","exit_type":"Acquired","year":2026,"tv":"Cyber Security, Security, Threat Intelligence, Detection, AI, IAM, SaaS, Cloud Security, Machine Learning, Access Management"},
+{"company":"Alcide IO Ltd.","round":"Series B","ri":2,"v":50,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Cyber Security, Containers, Cloud Security, DevOps, Network Security, Data Security, Cloud, Security, Anomaly Detection, AI"},
+{"company":"ObserveIT Ltd.","round":"Series B","ri":2,"v":225,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Cyber Security, Insider Threats, IT security, Endpoint Protection, Security, DLP, Privacy Tech, LegalTech"},
+{"company":"LightCyber Ltd.","round":"Series B","ri":2,"v":130,"cat":"other_exit","exit_type":"Acquired","year":2017,"tv":"Behavior Analytics, Big Data, Cyber Security, Network Traffic Analytics, Security"},
+{"company":"Minerva Labs Ltd.","round":"Series A","ri":1,"v":45,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Cyber Security, Deception, Defense Tech, Ransomware Protection, Targeted Attacks Prevention, Endpoint Protection, Endpoint Security, Security"},
+{"company":"BISEC Ltd.","round":"Seed","ri":0,"v":5.8,"cat":"other_exit","exit_type":"Acquired","year":2018,"tv":"Military, Defense Tech, CERT, Critical Infrastructure, Cyber Security, Homeland Security, Intelligence Driven Security, SoC, Threat Intelligence Platform"},
+{"company":"Cyberint Technologies Ltd.","round":"Series C","ri":3,"v":200,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Threat Intelligence, Cyber Security, Online Assets Protection, Vulnerability Management, AI, Big Data, Analytics, Machine Learning, Risk Management, Data Security, Monitoring, Network Security, Fraud Detection, Security, SoC, SecOps, AI Security"},
+{"company":"Javelin Networks Ltd.","round":"Series A","ri":1,"v":25,"cat":"other_exit","exit_type":"Acquired","year":2018,"tv":"Cyber Security, Deception, Network, network-security apt, Software Defined Networking, Security"},
+{"company":"CyberX Ltd.","round":"Series C","ri":3,"v":165,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"Security, Cyber Security, Machine Learning, Big Data, Industry 4.0"},
+{"company":"Veriti Security Ltd.","round":"Seed","ri":0,"v":100,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Security, Vulnerability Management, DSPM, Risk Management, Vulnerability Assessment, Threat Intelligence, Automation, Cyber Security, AI, Monitoring"},
+{"company":"BioCatch Ltd.","round":"Series C","ri":3,"v":750,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Security, IAM, Authentication, Biometrics, Cyber Security, FinTech, Mobile Security, Web Security, Insurtech, Fraud Detection, Fraud Prevention, AI, Motion Tracking, Machine Learning"},
+{"company":"Preempt Security Ltd.","round":"Series B","ri":2,"v":96,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"Security, Adaptive Technology, prevention, APT, Behavior Analytics, Cyber Security, Incident Response, Network Security, IAM"},
+{"company":"Suridata.AI Ltd.","round":"Seed","ri":0,"v":40,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Data Security, Data Privacy, Cyber Security, SaaS Security, Security, DSPM, AI, NLP, Machine Learning"},
+{"company":"Rezonate Ltd.","round":"Seed","ri":0,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Security, Cyber Security, Cloud, IAM, DevOps, DevSecOps"},
+{"company":"Oxeye Security Ltd.","round":"Seed","ri":0,"v":35,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Cyber Security, AI, DevOps, Application Security, DevSecOps, Security"},
+{"company":"Fabrik Security Ltd.","round":"Seed","ri":0,"v":25,"cat":"other_exit","exit_type":"Acquired","year":2026,"tv":"Cyber Security, AI, IAM, Network Security, Agentic AI, Identity Verification"},
+{"company":"Perimeter 81 Ltd.","round":"Series C","ri":3,"v":490,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Cloud Security, Network Security, SaaS, Cyber Security, Privacy Tech, Remote Access, SASE, Edge Computing, Security"},
+{"company":"Fireblade Ltd.","round":"Series B","ri":2,"v":15,"cat":"other_exit","exit_type":"Acquired","year":2016,"tv":"Security, Web Application, Anti-Scraping, Bot Blocking, Cyber Security, Enterprise, Firewall, Layer 7 DDoS, SaaS, Traffic Monitoring, Web Security"},
+{"company":"ZenGo Ltd.","round":"Series B","ri":2,"v":70,"cat":"other_exit","exit_type":"Acquired","year":2026,"tv":"Security, Web3, Edge Computing, Decentralization, Cyber Security, Blockchain Security, Digital Wallet, FinTech, Blockchain, Cryptocurrency"},
+{"company":"Neosec Ltd.","round":"Series A","ri":1,"v":60,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"AI, Cyber Security, Security, Application Security, SaaS"},
+{"company":"Ermetic Ltd.","round":"Series B","ri":2,"v":265,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Network Security, Analytics, Cyber Security, IAM, Security, Cloud, SaaS"},
+{"company":"DevOcean8 Ltd.","round":"Seed","ri":0,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Threat Intelligence, DevSecOps, Automation, Workflow Management, Exposure Management, Cloud Security, Application Security, Vulnerability Management, SecOps, Cyber Security, SaaS"},
+{"company":"Otterize.com Ltd.","round":"Seed","ri":0,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Cloud, Infrastructure, Enterprise Applications, IAM, Automation, Cyber Security, DevSecOps, Development Tools"},
+{"company":"CyberMDX Ltd.","round":"Series B","ri":2,"v":80,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Cyber Security, Machine Learning, Medical Devices, Information Security, Insurtech, Risk, Security, AI, Digital Health, IoT"},
+{"company":"Cyber Observer Ltd.","round":"Series C","ri":3,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Risk Management, Vulnerability Management, Orchestration, Insurtech, Cyber Security, Security"},
+{"company":"OTORIO Ltd.","round":"Series B","ri":2,"v":120,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Cloud Security, OT Cyber, IoT, SCADA, Industry 4.0, Connectivity, Cyber Security, Risk Management, Data Security"},
+{"company":"Hexatier Ltd.","round":"Series C","ri":3,"v":42,"cat":"other_exit","exit_type":"Acquired","year":2016,"tv":"Security, Cyber Security, Privacy Tech"},
+{"company":"Secure Islands Technologies Ltd.","round":"Series B","ri":2,"v":45.5,"cat":"other_exit","exit_type":"Acquired","year":2015,"tv":"Security, Cloud, Cyber Security, Data classification, Data Security, Information protection and control, IRM, Microsoft RMS, Mobile"},
+{"company":"Reposify Ltd.","round":"Seed","ri":0,"v":19,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Business Intelligence, Cyber Security, IoT, Big Data, Security, Risk Assessment, Vulnerability Management"},
+{"company":"Octarine Labs Ltd.","round":"Series A","ri":1,"v":20,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"Security, Cyber Security, Cloud, Cloud Security"},
+{"company":"Cynerio Ltd.","round":"Series B","ri":2,"v":109,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Risk Management, Security, AI, Generative AI, Network Security, Mobile Security, Cyber Security, Business Intelligence, Digital Health, Data Analytics, IoT, Threat Intelligence"},
+{"company":"Vulcan Cyber Ltd.","round":"Series B","ri":2,"v":150,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Cyber Security, Security, Vulnerability Management, Risk Assessment, SaaS, Cloud Security"},
+{"company":"Indegy Ltd.","round":"Series B","ri":2,"v":78,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Cyber Security, IoT, Security, Infrastructure Security, Industry 4.0"},
+{"company":"Illusive Networks Ltd.","round":"Series B","ri":2,"v":125,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Cyber Security, Security, Deception, Threat Protection, Network Security, Vulnerability Management"},
+{"company":"Eureka Security Ltd.","round":"Series A","ri":1,"v":29,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Data Privacy, Cloud Security, Cyber Security, Data Security, DSPM, Risk Management, Data Governance, Security"},
+{"company":"Sixgill Ltd. (Cybersixgill)","round":"Series B","ri":2,"v":115,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Machine Learning, Business Intelligence, Cyber Security, Deep Web, Security, Defense Tech, Threat Intelligence, Vulnerability Management, AI, Monitoring, SaaS"},
+{"company":"Opus Cyber Ltd. (Opus Security)","round":"Seed","ri":0,"v":20,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Security, AI, Agentic AI, Orchestration, SecOps, Cyber Security, Cloud Security"},
+{"company":"CYNC Secure Ltd.","round":"Seed","ri":0,"v":10,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Security, Optimization, Vulnerability Management, SecOps, Cyber Security"},
+{"company":"Hexagate Ltd.","round":"Seed","ri":0,"v":60,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Analytics, Cryptocurrency, GRC, Compliance Tech, Machine Learning, Monitoring, Risk Management, Threat Intelligence, Detection, FinTech, Automation, Cyber Security, Blockchain, Web3, Security"},
+{"company":"Slauth.io Ltd.","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"IAM, Cyber Security, DevSecOps, Compliance Tech, Security"},
+{"company":"Riskified Ltd.","round":"Series D","ri":4,"v":418.4,"cat":"other_exit","exit_type":"IPO","year":2021,"tv":"Security, Cyber Security, e-Commerce, Anti-Fraud, AI, RetailTech, Fraud Detection, Fraud Prevention, FinTech"},
+{"company":"Jit Security Ltd.","round":"Seed","ri":0,"v":70,"cat":"other_exit","exit_type":"Acquired","year":2026,"tv":"Cyber Security, AI, Orchestration, DevSecOps, Cloud Security, Application Security, Agentic AI, Vulnerability Management, Automation"},
+{"company":"SentinelOne Inc.","round":"Series F","ri":6,"v":1330,"cat":"other_exit","exit_type":"IPO","year":2021,"tv":"Enterprise security, Detection, IAM, Agentic AI, AI Security, SaaS, Endpoint Security, Cyber Security, Cloud Security, AI"},
+{"company":"empow Cyber Security Ltd.","round":"Series B","ri":2,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Security, Forensics, Cyber Security, NLP, SecOps, AI, Machine Learning"},
+{"company":"Radiflow Ltd.","round":"Series B","ri":2,"v":45,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Security, SCADA Security, Industrial Automation, Network Security, Monitoring, Cyber Security, IoT, Energy Tech, SCADA, Risk Management, Threat Intelligence, Industry 4.0, Connectivity"},
+{"company":"Laminar Ltd.","round":"Series A","ri":1,"v":105,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Security, DSPM, Cloud Security, Cloud, Data Protection, Cyber Security, SaaS, Data Privacy, Data Security"},
+{"company":"Authomize Ltd.","round":"Series A","ri":1,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"RegTech, SaaS, Cloud, Security, Compliance Tech, IAM, Cyber Security"},
+{"company":"KERNELiOS Ltd.","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Security, Simulators, Forensics, Training, EdTech, Cyber Security, Endpoint Protection, Network Security, SecOps"},
+{"company":"Saito Tech Ltd.","round":"Series A","ri":1,"v":10,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Cyber Security, Spyware, Surveillance, Security"},
+{"company":"Fortscale Security Ltd.","round":"Series C","ri":3,"v":25,"cat":"other_exit","exit_type":"Acquired","year":2018,"tv":"Deep Learning, Security, Cyber Forensic, Forensics, Analytics, Big Data, Cyber Security, FinTech, Machine Learning, AI"},
+{"company":"Perception Point Ltd.","round":"Series B","ri":2,"v":50,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Application Security, Web Security, Network Security, Malware, Cloud, E-mail Security, Cyber Security, AI, Generative AI, SaaS, Security"},
+{"company":"Filelock Ltd.","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2018,"tv":"Cyber Security, Security, Threat Protection"},
+{"company":"Vaultive Ltd.","round":"Series B","ri":2,"v":20,"cat":"other_exit","exit_type":"Acquired","year":2018,"tv":"Cyber Security, Encryption, SaaS, Virtualization, Cloud, Security"},
+{"company":"SCADAfence Ltd.","round":"Series C","ri":3,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Biopharmaceuticals, Network Security, Cyber Security, IoT, Smart Grid, OT Cyber, Industry 4.0, SCADA, Connectivity"},
+{"company":"Autotalks Ltd.","round":"Series D","ri":4,"v":85,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Autonomous Vehicles, Smart City, Cyber Security, Deep Tech, Automotive, Communications, Connected Car, IoT, SoC, Wireless, Mobility Tech, Semiconductors, V2X, Connectivity, 5G"},
+{"company":"Cellebrite DI Ltd.","round":"Series A","ri":1,"v":70,"cat":"other_exit","exit_type":"IPO","year":2021,"tv":"Hardware, Intelligence, Defense Tech, Data Analysis, Law Enforcement, Mobile Security, Threat Intelligence, Data Security, Public Safety, LegalTech, Cyber Security, Forensics, AI, SecOps"},
+{"company":"Wib Security Ltd.","round":"Series B","ri":2,"v":10,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Application Security, Machine Learning, AI, FinTech, Cyber Security, API, Security"},
+{"company":"Hysolate Ltd.","round":"Series C","ri":3,"v":20,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Endpoint Protection, Cyber Security, Security Networks, Endpoint Security, Security, Virtualization"},
+{"company":"PageSeal","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Cyber Security, Network Security, Phishing, Security"},
+{"company":"TrapX Security Inc.","round":"Series D","ri":4,"v":25,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Cyber Security, Deception, Intelligence, Network Security, Network protection, Malware, Real Time, Security, Industry 4.0"},
+{"company":"Sayata Labs Ltd.","round":"Series A","ri":1,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Machine Learning, AI, SaaS, Cyber Security, Vulnerability Management, Risk Management, Big Data, Data Analytics, Insurtech, FinTech, Automation, Security"},
+{"company":"Peterbald Ltd.","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2018,"tv":"Security, Surveillance, Cyber Security, Intelligence"},
+{"company":"SaferVPN Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Cloud, Cyber Security, Security, SaaS, Privacy Tech"},
+{"company":"Namogoo Technologies Ltd.","round":"Series D","ri":4,"v":30,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Security, Phishing, Web Security, Big Data, Cyber Security, e-Commerce, FinTech, Machine Learning, Malware, Network Security, RetailTech, Travel Tech, Privacy Tech, Fraud, AI"},
+{"company":"Cloudwize Owl Ltd.","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Cloud, SaaS, DevOps, FinOps, SecOps, DevSecOps, Data Security, DSPM, Security, Cloud Security, No Code, Compliance Tech, Monitoring, Cyber Security"},
+{"company":"Persolvo Ltd. (Solvo)","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Cloud, Network Security, Security, Threat Intelligence, DSPM, Compliance Tech, IAM, DevOps, Cyber Security, Cloud Security, AI, Generative AI"},
+{"company":"Nyotron Information Security Ltd.","round":"Series E","ri":5,"v":15.6,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Security, Antivirus, Cyber Security, Endpoint Security, Information Security, Malware, targeted attacks, Threat Agnostic Security, Cyber Forensic, Forensics"},
+{"company":"Cymptom Labs Ltd.","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Cyber Security, Realtime, Vulnerability Management, Security"},
+{"company":"Cyiot Ltd. (Cy-oT)","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"AI, Industry 4.0, Cyber Security, Wireless security, IoT, Security"},
+{"company":"Dojo Labs Ltd.","round":"Seed","ri":0,"v":0.5,"cat":"other_exit","exit_type":"Acquired","year":2016,"tv":"Privacy Tech, Security, Connected Home, Cyber Security, IoT, Smart Home"},
+{"company":"enSilo Ltd.","round":"Series B","ri":2,"v":15.8,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Security, Cyber Security, DLP"},
+{"company":"Rotate Security Ltd.","round":"Series A","ri":1,"v":2,"cat":"other_exit","exit_type":"Acquired","year":2026,"tv":"Endpoint Security, IAM, Security, Insurtech, Cloud, Cyber Security"},
+{"company":"Kindite Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Security, Cyber Security, Data Security, Cloud, Cryptography, Encryption, Big Data, FinTech, Privacy Tech, GRC, Data Protection"},
+{"company":"Covertix Ltd. (Ozone)","round":"Series C","ri":3,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2018,"tv":"Security, Cloud, Machine Learning, Cyber Forensic, Cyber Security, Data loss prevention, Data Security, DLP, Document Security, Enterprise, File Surveillance, IRM Security, Secure Collaboration"},
+{"company":"Polyrize Security Ltd.","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"Security, Cloud, Machine Learning, SaaS, IaaS, Cyber Security, authorization, IAM"},
+{"company":"Protected Media Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Digital Media, Ad Fraud, Fraud Prevention, Web Security, Security, AdTech, Cyber Security, Fraud Detection"},
+{"company":"Ananda Networks","round":"Seed","ri":0,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Security, Cyber Security, Machine Learning, Cloud, LAN"},
+{"company":"WiseSec Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Banking Tech, Cyber Security, Data leakage prevention, Device Management, Device Security, Enterprise Mobility, Fraud Detection, Geofencing, Health, Indoor Navigation, Industry 4.0, M2M, Mobile Applications, Mobile Security, Mobility Tech, RetailTech"},
+{"company":"Cronus Cyber Technology Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"Security, Cyber Security, Defense Tech, AI"},
+{"company":"TopSpin Security Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2017,"tv":"Network Security, Cyber Security, Deception, Security"},
+{"company":"Reblaze Technologies Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2024,"tv":"Cloud, Cyber Security, Web Security, Security, Cloud Security, Application Security, PaaS, Firewall, Bots"},
+{"company":"KameleonSec Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Security, Enterprise Hardware, Semiconductors, Cyber Security, Deep Tech"},
+{"company":"Cyber SecBI Ltd.","round":"Series B","ri":2,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"AI, SecOps, SoC, Network Traffic Analytics, Big Data, Cyber Security, Machine Learning, Threat Intelligence, Automation, Incident Response, Security"},
+{"company":"SafeRide Technologies Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Security, Connected Vehicles, Fleet Safety, Machine Learning, Automotive, Cyber Security, IoT, Fleet Management, Deep Learning"},
+{"company":"Infinipoint Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Zero Trust Network Access (ZTNA), IAM, Authentication, Cloud Security, SaaS Security, Endpoint Security, Anti-Phishing, Security, SecOps, Cyber Security, AI"},
+{"company":"SecuredTouch Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Mobile applications security, Authentication, Biometrics, Cyber Security, FinTech, Fraud, Security, Fraud Prevention, Fraud Detection"},
+{"company":"Cyabra Strategy Ltd.","round":"Series A","ri":1,"v":1.5,"cat":"other_exit","exit_type":"IPO","year":2026,"tv":"Big Data, GovTech, NLP, Threat Intelligence, Homeland Security, Social Media, Marketing Tech, AI, Cyber Security, Security, Deepfake, Machine Learning, Web Security, Defense Tech, Electronic warfare"},
+{"company":"Cytegic Ltd.","round":"Series B","ri":2,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"Cyber Security, Insurtech, Security, Privacy Tech, AI, Vulnerability Management, Risk Management"},
+{"company":"Cymmetria Security Ltd.","round":"Series B","ri":2,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2019,"tv":"Security, Adaptive decoys, APT, Cyber Security, Deception Stack, Deception, Network Security, Defense Tech, Forensics"},
+{"company":"Kaymera Technologies Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"BYOD, Cyber Security, DevOps, Encryption, Mobile Security, Defense Tech, Security, Monitoring, Malware Protection, Threat Protection, Risk Analytics, Detection, Application Security"},
+{"company":"Dylemma Security Ltd. (Cyrus)","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2023,"tv":"Data Privacy, Data Security, Fraud Prevention, Fraud Detection, Security, Cyber Security"},
+{"company":"ZecOps Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Security, Cyber Security, Machine Learning, AI, SecOps"},
+{"company":"Satori Cyber Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Cyber Security, Mapping, Monitoring, Data Protection, GRC, Privacy Protection, DSPM, Data Privacy, Data Security, Security, SaaS, Data Management, Data Governance, Cloud Security, AI Security"},
+{"company":"Sookasa Technologies Ltd.","round":"Series A","ri":1,"v":0.25,"cat":"other_exit","exit_type":"Acquired","year":2016,"tv":"Security, Cyber Security, Data Security, Enterprise Consumerization, Enterprise Software"},
+{"company":"DocAuthority Ltd.","round":"Series A","ri":1,"v":0.356,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Security, Data Protection, Cyber Security, GRC, Privacy Protection, Privacy Tech"},
+{"company":"DIZ Soft Ltd. (1touch.io)","round":"Series C","ri":3,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2026,"tv":"Data Protection, Identity Management, GRC, NLP, Cyber Security, Analysis, Data Security, Data Privacy, Security, AI, Machine Learning, Network Analysis, Privacy Protection, DSPM"},
+{"company":"VisibleRisk Ltd.","round":"Series A","ri":1,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2021,"tv":"Risk Management, Security, Cyber Security"},
+{"company":"jSonar Inc.","round":"Series B","ri":2,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2020,"tv":"Data Analytics, Cyber Security, FinTech, Insurtech, Healthtech"},
+{"company":"EverC Ltd.","round":"Series B","ri":2,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Cyber Security, FinTech, Risk Management, Big Data, Anti-Fraud, RegTech, Monitoring, Machine Learning, Security, AI, LegalTech, Fraud Prevention"},
+{"company":"Sentrix Ltd.","round":"Series B","ri":2,"v":0.125,"cat":"other_exit","exit_type":"Acquired","year":2015,"tv":"Web Security, Cyber Security, DDoS protection, Information Security, Web Site Business Continuity, Web Site Security, Security"},
+{"company":"PerimeterX Ltd.","round":"Series D","ri":4,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2022,"tv":"Behavior Analytics, Cyber Security, Security, Web Security, Mobile Security, Network Security, SaaS, AI, Bots"},
+{"company":"Cybereason Labs Ltd.","round":"Series F","ri":6,"v":1,"cat":"other_exit","exit_type":"Acquired","year":2025,"tv":"Forensics, Advanced Persistent Threats, Analytics, Big Data, Cryptography, Cyber Security, Cybercrime, Machine Learning, Malware, Endpoint Security, Security, DevSecOps, Threat Intelligence, DSPM, AI"},
+{"company":"Onyx Security Ltd.","round":"Series B","ri":2,"v":600,"cat":"cs_active","exit_type":null,"year":null,"tv":"AI, Cyber Security, SaaS, Agentic AI, Monitoring"},
+{"company":"Upwind Security Ltd.","round":"Series B","ri":2,"v":1500,"cat":"cs_active","exit_type":null,"year":null,"tv":"Network Security, Network Management, Analysis, Cloud, Cyber Security, Cloud Security, Enterprise Software, Infrastructure Security"},
+{"company":"Cyera Ltd.","round":"Series F","ri":6,"v":9000,"cat":"cs_active","exit_type":null,"year":null,"tv":"AI Security, Data Protection, Security, AI, Generative AI, Cloud, Cyber Security, Enterprise Software, Cloud Security, DSPM, SaaS Security, Enterprise security, IAM, Insights"},
+{"company":"Vega Cyber Solutions Ltd.","round":"Series B","ri":2,"v":800,"cat":"cs_active","exit_type":null,"year":null,"tv":"Cyber Security, Security, Identification, AI, Detection, Analysis"},
+{"company":"Glow Technology Ltd.","round":"Series A","ri":1,"v":400,"cat":"cs_active","exit_type":null,"year":null,"tv":"Cyber Security, Endpoint Security, Security"},
+{"company":"Island Technology Inc.","round":"Series E","ri":5,"v":4800,"cat":"cs_active","exit_type":null,"year":null,"tv":"Cyber Security, Security, Enterprise Applications, SaaS, Web Platform, Web Security, Safety, Access Control, Compliance Tech, AI, Generative AI"},
+{"company":"Fireblocks Ltd.","round":"Series E","ri":5,"v":8000,"cat":"cs_active","exit_type":null,"year":null,"tv":"Digital Wallet, Security, PayTech, Web3, Compliance Tech, Digital Assets, Cryptocurrency, NFT, Payments, DeFi, Blockchain Security, Blockchain, Cyber Security, FinTech"},
+{"company":"Transmit Security Ltd.","round":"Series A","ri":1,"v":2743,"cat":"cs_active","exit_type":null,"year":null,"tv":"Biometrics, Scanner, FinTech, Cyber Security, Fraud Detection, Security, IAM, Insurtech"},
+{"company":"Zafran","round":"Series C","ri":3,"v":550,"cat":"cs_active","exit_type":null,"year":null,"tv":"Cyber Security, Vulnerability Management, Risk Management, Security"},
+{"company":"Enclave AI","round":"Seed","ri":0,"v":33,"cat":"other_active","exit_type":null,"year":null,"tv":"AI, Cyber Security, Mobile Applications"},
+{"company":"Attestable AI Ltd.","round":"Seed","ri":0,"v":71,"cat":"other_active","exit_type":null,"year":null,"tv":"AI, Cyber Security, Security, AI Infrastructure, AI Integrity Trust"},
+{"company":"Claroty Ltd.","round":"Series F","ri":6,"v":3000,"cat":"other_active","exit_type":null,"year":null,"tv":"OT Cyber, Cyber Security, IoT, Smart Grid, Connectivity, Industry 4.0"},
+{"company":"Torq Technologies Ltd.","round":"Series D","ri":4,"v":1200,"cat":"other_active","exit_type":null,"year":null,"tv":"Automation, No Code, Cyber Security, Cloud Security, SecOps, Generative AI, SoC, Security, Agentic AI, AI"},
+{"company":"Seven AI Inc. (7AI)","round":"Seed","ri":0,"v":125,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Agentic AI, AI, Cyber Security, Generative AI"},
+{"company":"Guardio Ltd.","round":"Series A","ri":1,"v":450,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Machine Learning, Threat Protection, Cyber Security, Browser Extension, Chrome Extension, Phishing, Malware, AI, Deep Learning, Web Security"},
+{"company":"Remedio Ltd.","round":"Series A","ri":1,"v":300,"cat":"other_active","exit_type":null,"year":null,"tv":"Identification, Vulnerability Management, Security, Cyber Security, Endpoint Security"},
+{"company":"SilverFort Inc.","round":"Series D","ri":4,"v":700,"cat":"other_active","exit_type":null,"year":null,"tv":"SaaS, Cloud Security, OT Cyber, IAM, Security, Deep Tech, Authentication, Big Data, Cyber Security, Data Security, Fraud Detection"},
+{"company":"Noma Security Ltd.","round":"Series B","ri":2,"v":400,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Agentic AI, AI Security, Compliance Tech, Cyber Security, AI, Generative AI, Data Protection, Application Security, Mobile Security, Cloud Security, Privacy Tech, Detection, Web Security"},
+{"company":"CyVers.ai Ltd.","round":"Seed","ri":0,"v":19,"cat":"other_active","exit_type":null,"year":null,"tv":"AI, Blockchain, Machine Learning, FinTech, Cyber Security, Web3, Security"},
+{"company":"Pentera Security Ltd.","round":"Series D","ri":4,"v":1100,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Detection, Cloud Security, Data Security, Compliance Tech, Cyber Security, Defense Tech, Attack Simulation, Penetration Testing, Network Security, Vulnerability Assessment, Vulnerability Management, Risk Management"},
+{"company":"Dream Security Ltd.","round":"Series B","ri":2,"v":1100,"cat":"other_active","exit_type":null,"year":null,"tv":"AI, Cyber Security, National Security, Generative AI, Deep Tech, Behavior Analytics, Security, Defense Tech, Electronic warfare, Fusion, Intelligence"},
+{"company":"Mitiga Ltd.","round":"Series A","ri":1,"v":110,"cat":"other_active","exit_type":null,"year":null,"tv":"Network Security, Cyber Security, Cloud Security, SecOps, Security, Incident Response"},
+{"company":"RiskQ Inc.","round":"Seed","ri":0,"v":4,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Risk Management, Digital Assets, Cyber Security, Vulnerability Management, GRC, Privacy Tech, Insurtech"},
+{"company":"Cyberbit Inc.","round":"Series B","ri":2,"v":175,"cat":"other_active","exit_type":null,"year":null,"tv":"Big Data, Cyber Security, IDS, Law Enforcement, SCADA, SoC, Training, Endpoint Security, IoT, Security, EdTech, SecOps"},
+{"company":"Semperis Ltd.","round":"Series D","ri":4,"v":1100,"cat":"other_active","exit_type":null,"year":null,"tv":"Cyber Security, DevOps, IAM, Active Directory, Security, Threat Intelligence, Automation, Risk Assessment, AI"},
+{"company":"Coronet Cyber Security Ltd. (Coro)","round":"Series D","ri":4,"v":750,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Anti-Phishing, SASE, AI, Endpoint Security, Cyber Security, SaaS, Autonomous Tech, Threat-Detection, Cloud Security"},
+{"company":"BigID Inc.","round":"Series E","ri":5,"v":1000,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Cyber Security, Network Security, Big Data, DSPM, Data Privacy, Data Security, Data Intelligence, Data Discovery, Data Governance, Cloud Security, Data classification, AI, Privacy Tech, LegalTech, Enterprise security, Machine Learning, Data Protection"},
+{"company":"Axonius Solutions Ltd.","round":"Series E","ri":5,"v":2600,"cat":"other_active","exit_type":null,"year":null,"tv":"SaaS, Deep Tech, Vulnerability Management, Incident Response, OT Cyber, Cyber Security, IoT, Cloud, SaaS Security"},
+{"company":"Aqua Security Ltd.","round":"Series E","ri":5,"v":1100,"cat":"other_active","exit_type":null,"year":null,"tv":"Cyber Security, Containers, DevOps, Cloud Security, Open Source, Security, Serverless, Insurtech"},
+{"company":"BrandShield Systems Ltd.","round":"Series A","ri":1,"v":17.5,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Brand protection, Intelligence, Monitoring, Web Application, AI, Big Data, FinTech, Cyber Security, Threat Intelligence, Fraud Detection, SaaS, Enterprise security, Blockchain, Cryptocurrency"},
+{"company":"Cato Networks Ltd.","round":"Series F","ri":6,"v":3000,"cat":"other_active","exit_type":null,"year":null,"tv":"AI, Machine Learning, Security, Cyber Security, Network Security as a Service, Information Technology, SASE, Network Security, Cloud Security, Cloud"},
+{"company":"ThetaRay Ltd.","round":"Series C","ri":3,"v":200,"cat":"other_active","exit_type":null,"year":null,"tv":"FinTech, Deep Learning, Insurtech, Analytics, Big Data, Cyber Security, Fraud, GRC, Industrial, Infrastructure Security, IoT, Malware, Middleware, SCADA, Smart Buildings, Payments, Banking Tech, Monitoring, Identity Management, PayTech, Machine Learning, SaaS, Agentic AI, Security, Industry 4.0, AI"},
+{"company":"Grip Security Ltd.","round":"Series B","ri":2,"v":500,"cat":"other_active","exit_type":null,"year":null,"tv":"SaaS, Cyber Security, AI, Machine Learning, Security"},
+{"company":"Votiro Cybersec Ltd.","round":"Seed","ri":0,"v":15,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, E-mail Security, Antivirus, APT, Cyber Security, FinTech, spear-phishing protection, Web Security, Insurtech, Healthcare IT, Infrastructure"},
+{"company":"ActiveFence Ltd.","round":"Series B","ri":2,"v":350,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Cyber Security, AI, Computer Vision, NLP, Fraud Detection, Fraud Prevention, Web Security, Threat Intelligence"},
+{"company":"Deep Instinct Ltd.","round":"Series C","ri":3,"v":223,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Endpoint Security, Cyber Security, Deep Learning, Machine Learning, Mobile Security, Threat Intelligence, Cloud Security, Enterprise security, Malware, Detection, AI"},
+{"company":"Apiiro Ltd.","round":"Series B","ri":2,"v":550,"cat":"other_active","exit_type":null,"year":null,"tv":"Compliance Tech, DevOps, Risk Analysis, Cloud Security, Security, DevSecOps, Enterprise security, Application Security Posture Management (ASPM), Application Security, Cyber Security"},
+{"company":"Cymulate Ltd.","round":"Series D","ri":4,"v":500,"cat":"other_active","exit_type":null,"year":null,"tv":"Cyber Security, SaaS, Security, Exposure Management, Attack Simulation"},
+{"company":"Cyber 2.0 Ltd.","round":"Series A","ri":1,"v":20,"cat":"other_active","exit_type":null,"year":null,"tv":"OT Cyber, Cyber Security, Encryption, IoT, SCADA Security, Maritime Tech, Endpoint Security"},
+{"company":"Skyhawk Security Ltd.","round":"Seed","ri":0,"v":180,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Monitoring, Cloud Security, Cyber Security, Cloud"},
+{"company":"Surance Ltd.","round":"Series A","ri":1,"v":16,"cat":"other_active","exit_type":null,"year":null,"tv":"Data Analytics, Big Data, Chatbots, Cyber Security, Insurtech, IoT, Sensors, AI"},
+{"company":"Infinity Labs R&D Ltd.","round":"Series A","ri":1,"v":115,"cat":"other_active","exit_type":null,"year":null,"tv":"Cyber Security, EdTech, Training, AI, DevOps"},
+{"company":"CHEQ AI Technologies Ltd.","round":"Series C","ri":3,"v":1000,"cat":"other_active","exit_type":null,"year":null,"tv":"Digital Media, Entertainment, Cyber Security, Machine Learning, Fraud Prevention, Generative AI, Online Advertising, AI, NLP, AdTech, Fraud Detection, Web Security"},
+{"company":"Salt Security Inc.","round":"Series D","ri":4,"v":1400,"cat":"other_active","exit_type":null,"year":null,"tv":"Web Security, Application Security, API, Cloud Security, Cloud, Network Security, Machine Learning, AI, DevOps, SecOps, Cyber Security, Vulnerability Assessment, DevSecOps, Security, Big Data, Analysis, Detection, Agentic AI, IoT"},
+{"company":"Redefine Technologies Ltd.","round":"Seed","ri":0,"v":50,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Cyber Security, DeFi, Blockchain, Cryptocurrency, Web3, Compliance Tech, FinTech, SaaS"},
+{"company":"PlainID Ltd.","round":"Series C","ri":3,"v":300,"cat":"other_active","exit_type":null,"year":null,"tv":"Cyber Security, FinTech, Security, authorization, IAM"},
+{"company":"CyCognito Ltd.","round":"Series C","ri":3,"v":800,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Cyber Security, Analysis, Attack Simulation, Threat Intelligence, Vulnerability Management, Risk Management"},
+{"company":"At-Bay Technologies Ltd.","round":"Series D","ri":4,"v":1350,"cat":"other_active","exit_type":null,"year":null,"tv":"FinTech, Cyber Security, Insurtech, Security, Vulnerability Management, Risk Management, Monitoring"},
+{"company":"Orca Security Ltd.","round":"Series C","ri":3,"v":1800,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, AI, Scanning, DSPM, Malware Detection Prevention, IAM, Risk Management, Vulnerability Management, API, B2D, Cloud Security, Cyber Security, Cloud"},
+{"company":"Cynamics Inc.","round":"Seed","ri":0,"v":10,"cat":"other_active","exit_type":null,"year":null,"tv":"OT Cyber, AI, Cyber Security"},
+{"company":"Rezilion Ltd.","round":"Series A","ri":1,"v":95,"cat":"other_active","exit_type":null,"year":null,"tv":"Cyber Security, Machine Learning, DevOps, Cloud Security, Security"},
+{"company":"Snyk Ltd.","round":"Series F","ri":6,"v":8600,"cat":"other_active","exit_type":null,"year":null,"tv":"Cyber Security, Application Security, Network Security, B2D, Development Tools, Open Source, PLG, DevSecOps, Cloud Security, Security, Vulnerability Management, Open Source Security, Generative AI, AI Security, Agentic AI, LLM, AI, API, SaaS"},
+{"company":"iXDen Ltd.","round":"Series A","ri":1,"v":16,"cat":"other_active","exit_type":null,"year":null,"tv":"OT Cyber, IoT, M2M, Machine Learning, Digital Health, Cyber Security, AI, Smart City, Industry 4.0"},
+{"company":"Atera Networks Ltd.","round":"Series B","ri":2,"v":500,"cat":"other_active","exit_type":null,"year":null,"tv":"Enterprise Networking, AI, Agentic AI, Cyber Security, Cloud, SaaS, PLG, Automation, Monitoring, Remote Monitoring"},
+{"company":"Forter Ltd.","round":"Series F","ri":6,"v":3000,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Fraud Prevention, e-Commerce, Insurtech, Cyber Security, FinTech, Machine Learning, Data Analytics, Risk Management, Anti-Fraud, Payments, Generative AI, IAM, PayTech, AI"},
+{"company":"Orchestra Group Ltd.","round":"Series A","ri":1,"v":18,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, IoT, Cyber Security, Vulnerability Management, Risk Management, GRC, Privacy Protection, Data Protection"},
+{"company":"Operations & Data Integrity (ODI) Ltd.","round":"Series A","ri":1,"v":7.5,"cat":"other_active","exit_type":null,"year":null,"tv":"SaaS, Cloud Security, Malware, Ransomware Protection, Network Security, Cyber Security, E-mail Security, Security"},
+{"company":"AU10TIX Ltd.","round":"Series A","ri":1,"v":260,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Identity Management, IAM, SaaS, Verification, Authentication, Cyber Security, Data Security, FinTech, Fraud Detection, Fraud Prevention, AI"},
+{"company":"Paygilant Ltd.","round":"Seed","ri":0,"v":4,"cat":"other_active","exit_type":null,"year":null,"tv":"PayTech, Cyber Security, FinTech, Fraud, Mobile, Mobile Security, Payments, Security, Fraud Detection, Fraud Prevention"},
+{"company":"Verifyoo Ltd.","round":"Seed","ri":0,"v":2.67,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Biometrics, Cyber Security, IAM, Fraud Detection, AI"},
+{"company":"Kela Research and Strategy Ltd.","round":"Series B","ri":2,"v":200,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Cyber Security, Information Security, Threat Intelligence"},
+{"company":"Algosec Inc.","round":"Series A","ri":1,"v":350,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Forensics, Cyber Security, Firewall, Firewall Management, Network, Network Security"},
+{"company":"Voyager Labs Inc.","round":"Series C","ri":3,"v":500,"cat":"other_active","exit_type":null,"year":null,"tv":"Deep Tech, AI, Machine Learning, Computer Vision, Cyber Security, Big Data, Business Intelligence, Data Analytics, Data Science, Predictive Analytics, Risk Assessment, Deep Learning"},
+{"company":"TripleCyber Ltd.","round":"Series A","ri":1,"v":4,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Analytics, B2B, Big Data, Cyber Security, Data Security, DLP, Event Management, Forensics, IT Infrastructure, Network Security, Risk Assessment, Security Assessment, siem, SoC, Web Security, Penetration Testing, Insurtech, Cyber Awareness Training, AI"},
+{"company":"53n53 Ltd. (SENSE)","round":"Seed","ri":0,"v":0.4,"cat":"other_active","exit_type":null,"year":null,"tv":"Security, Cyber Security, Electronic fences, Enterprise security, Homeland Security, IoT, Machine Learning, Radars, Smart Buildings, Smart City, video motion detection (VMD), Industry 4.0"}
+];
+
+// --- Deduplicate ---
+const seen = new Set();
+const DATA = [];
+for (const d of RAW) {
+  const k = d.company + '|' + d.ri + '|' + d.v + '|' + d.cat;
+  if (!seen.has(k)) { seen.add(k); DATA.push(d); }
+}
+
+// --- Config ---
+const ROUNDS = ['Seed','Series A','Series B','Series C','Series D','Series E','Series F'];
+const W = 1000, H = 570;
+const ML = 72, MR = 30, MT = 30, MB = 65;
+const PW = W - ML - MR, PH = H - MT - MB;
+const YMAX = 10000;
+
+const STYLE = {
+  other_active: {fill:'#D1D5DB', stroke:'#9ca3af', r:3.5, opacity:0.7, order:0},
+  other_exit:   {fill:'#4B5563', stroke:'#374151', r:4.5, opacity:0.8, order:1},
+  cs_exit:      {fill:'#DC2626', stroke:'#991b1b', r:7,   opacity:1,   order:2},
+  cs_active:    {fill:'#2563EB', stroke:'#1e40af', r:7,   opacity:1,   order:3}
+};
+
+// --- Jitter (deterministic) ---
+function hash(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 16777619) >>> 0; }
+  return h;
+}
+DATA.forEach(d => {
+  const range = d.cat.startsWith('cs_') ? 0.28 : 0.72;
+  const seed = hash(d.company + String(d.v) + d.cat);
+  const rnd = (seed % 10000) / 10000;
+  d.jx = d.ri + (rnd - 0.5) * range;
+});
+
+// --- Scale functions ---
+const xs = x => ML + ((x + 0.5) / 7) * PW;
+const ys = v => MT + PH - (Math.min(v, YMAX) / YMAX) * PH;
+
+// --- State ---
+const active = new Set(Object.keys(STYLE));
+
+// --- Render ---
+const svg = document.getElementById('chart');
+const tip = document.getElementById('tip');
+const wrap = document.getElementById('wrap');
+const NS = 'http://www.w3.org/2000/svg';
+
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function txt(text, attrs, parent) {
+  const e = el('text', attrs, parent);
+  e.textContent = text;
+  return e;
+}
+
+function render() {
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  // Grid lines + Y labels
+  for (let v = 0; v <= YMAX; v += 1000) {
+    const y = ys(v);
+    el('line', {x1:ML, x2:W-MR, y1:y, y2:y, class: v===0 ? 'axisline' : 'gridline'}, svg);
+    const lbl = v === 0 ? '$0' : `$${v/1000}B`;
+    txt(lbl, {x:ML-8, y:y+4, 'text-anchor':'end', class:'tick-label'}, svg);
+  }
+
+  // X axis labels + vertical guides
+  for (let i = 0; i < 7; i++) {
+    const x = xs(i);
+    el('line', {x1:x, x2:x, y1:MT, y2:MT+PH, stroke:'#f3f4f6', 'stroke-width':'1'}, svg);
+    txt(ROUNDS[i], {x, y:H-MB+22, 'text-anchor':'middle', class:'round-label'}, svg);
+  }
+
+  // Axis titles
+  {
+    const t = el('text', {transform:`translate(18,${MT+PH/2}) rotate(-90)`, 'text-anchor':'middle', class:'axis-title'}, svg);
+    t.textContent = 'Exit Value / Last-Round Valuation ($M)';
+  }
+  {
+    const t = el('text', {x:ML+PW/2, y:H-10, 'text-anchor':'middle', class:'axis-title'}, svg);
+    t.textContent = 'Last Round Before Exit / Current Round';
+  }
+
+  // Dots (sorted so cs_* render on top)
+  const sorted = [...DATA].sort((a,b) => STYLE[a.cat].order - STYLE[b.cat].order);
+  for (const d of sorted) {
+    if (!active.has(d.cat)) continue;
+    const s = STYLE[d.cat];
+    const cx = xs(d.jx), cy = ys(d.v);
+    if (cy < MT - 10) continue; // clipped above $10B
+
+    const c = el('circle', {
+      cx, cy, r: s.r,
+      fill: s.fill, stroke: s.stroke, 'stroke-width': '1.2',
+      opacity: s.opacity, class: 'dot'
+    }, svg);
+    c.addEventListener('mouseenter', e => showTip(e, d));
+    c.addEventListener('mousemove', moveTip);
+    c.addEventListener('mouseleave', hideTip);
+  }
+
+  // Labels on Cyberstarts dots only
+  for (const d of sorted) {
+    if (!active.has(d.cat) || !d.cat.startsWith('cs_')) continue;
+    const cx = xs(d.jx), cy = ys(d.v);
+    if (cy < MT - 10) continue;
+    const name = d.company
+      .replace(/ Ltd\.$/, '').replace(/ Inc\.$/, '').replace(/ Ltd$/, '').replace(/ Inc$/, '')
+      .replace(' Technologies', '').replace(' Security', '').replace(' Cyber', '')
+      .replace(' Solutions', '').replace(/ Technology$/, '');
+    txt(name, {
+      x: cx, y: cy - 10,
+      'text-anchor': 'middle', class: 'company-label',
+      fill: d.cat === 'cs_exit' ? '#991b1b' : '#1e40af'
+    }, svg);
+  }
+}
+
+function fmtV(v) {
+  if (v >= 1000) return `$${(v/1000).toFixed(v%1000===0?0:1)}B`;
+  if (v < 1)    return `$${v}M`;
+  return `$${Math.round(v)}M`;
+}
+
+function showTip(e, d) {
+  const catName = {
+    cs_exit:      'Cyberstarts Exited',
+    cs_active:    'Cyberstarts Active',
+    other_exit:   'Other Exited',
+    other_active: 'Other Active'
+  }[d.cat];
+  const valLabel = d.cat.includes('exit') && d.year ? 'Exit Value' : 'Last-Round Val.';
+  let h = `<b>${d.company}</b>`;
+  h += `<div class="tr"><span class="tl">Category</span><span class="tv">${catName}</span></div>`;
+  h += `<div class="tr"><span class="tl">Round</span><span class="tv">${d.round}</span></div>`;
+  h += `<div class="tr"><span class="tl">${valLabel}</span><span class="tv">${fmtV(d.v)}</span></div>`;
+  if (d.year)      h += `<div class="tr"><span class="tl">Exit Year</span><span class="tv">${d.year}</span></div>`;
+  if (d.exit_type) h += `<div class="tr"><span class="tl">Exit Type</span><span class="tv">${d.exit_type}</span></div>`;
+  if (d.tv) {
+    const tv = d.tv.trim();
+    h += `<div class="vt">${tv.length > 100 ? tv.slice(0, 100) + '…' : tv}</div>`;
+  }
+  tip.innerHTML = h;
+  tip.style.opacity = '1';
+  moveTip(e);
+}
+function moveTip(e) {
+  const r = wrap.getBoundingClientRect();
+  let x = e.clientX - r.left + 14, y = e.clientY - r.top + 14;
+  if (x + tip.offsetWidth  > r.width  - 4) x = e.clientX - r.left - tip.offsetWidth  - 14;
+  if (y + tip.offsetHeight > r.height - 4) y = e.clientY - r.top  - tip.offsetHeight - 14;
+  tip.style.left = x + 'px';
+  tip.style.top  = y + 'px';
+}
+function hideTip() { tip.style.opacity = '0'; }
+
+// Legend toggles
+document.querySelectorAll('.leg').forEach(el => {
+  el.addEventListener('click', () => {
+    const cat = el.dataset.cat;
+    if (active.has(cat)) { active.delete(cat); el.classList.add('off'); }
+    else                 { active.add(cat);    el.classList.remove('off'); }
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>
