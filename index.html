@@ -1161,12 +1161,8 @@ function initTimingChart(){
     }
     csC.forEach(function(c){
       var dg=document.createElementNS('http://www.w3.org/2000/svg','g'); dg.style.cursor='pointer';
-      var dotX=cx+bw/2+10,dotY=yPos(c.months),lY=c._lY;
-      if(Math.abs(lY-dotY)>4) dg.appendChild(mk('line',{x1:dotX+4,y1:dotY,x2:dotX+4,y2:lY,stroke:'#93c5fd','stroke-width':'0.8','stroke-opacity':'0.8'}));
-      dg.appendChild(mk('circle',{cx:dotX,cy:dotY,r:'5',fill:'#1D4ED8',stroke:'#fff','stroke-width':'1',opacity:'0.92'}));
-      var sn=c.company.replace(/ Ltd\.$/,'').replace(/ Inc\.$/,'').replace(/ Ltd$/,'').replace(/ Inc$/,'')
-        .replace(' Technologies','').replace(' Security','').replace(' Cyber','').replace(' Cloud','');
-      dg.appendChild(mk('text',{x:dotX+8,y:lY+3.5,fill:'#1e40af','font-size':'9.5','font-weight':'600','font-family':'inherit','pointer-events':'none'},sn));
+      var dotX=cx+bw/2+8,dotY=yPos(c.months);
+      dg.appendChild(mk('circle',{cx:dotX,cy:dotY,r:'5.5',fill:'#1D4ED8',stroke:'#fff','stroke-width':'1.5',opacity:'0.95'}));
       dg.addEventListener('mouseenter',function(ev){
         var h='<b>'+c.company+'</b>';
         var cv=VAL_MAP[c.company];
@@ -1197,6 +1193,14 @@ function initTimingChart(){
         h+='<div class="tr"><span class="tl">'+k+'</span><span class="tv">'+val+'m</span></div>';
       });
       if(fast.length) h+='<div style="color:#d1d5db;font-size:10px;margin-top:3px">Fastest: '+fast.map(function(c){return c.company.split(' ')[0]+'('+c.months+'m)';}).join(', ')+'</div>';
+      var csY=d.companies.filter(function(c){return c.cs;}).sort(function(a,b){return a.months-b.months;});
+      if(csY.length){
+        h+='<div style="border-top:1px solid #374151;margin-top:5px;padding-top:4px;color:#93c5fd;font-size:10px;font-weight:600">CS portfolio ('+csY.length+')</div>';
+        csY.forEach(function(c){
+          var sn=c.company.replace(/ Ltd.$/,'').replace(/ Inc.$/,'').replace(' Technologies','').replace(' Security','');
+          h+='<div style="color:#d1d5db;font-size:10px">'+sn+' — <b style="color:#fff">'+c.months+'m</b></div>';
+        });
+      }
       tipEl.innerHTML=h;tipEl.style.opacity='1';moveTipS2A(ev);
     });
     grp.addEventListener('mouseleave',function(){tipEl.style.opacity='0';});
