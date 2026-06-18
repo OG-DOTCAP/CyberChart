@@ -103,7 +103,9 @@ h1{font-size:1.2rem;font-weight:700;color:#111827;margin-bottom:3px}
     <div class='tab-btn' data-tab='network'>🕸 Acquirer Network</div>
     <div class='tab-btn' data-tab='coinv'>🌐 Co-investment Patterns</div>
     <div class='tab-btn' data-tab='rounddyn'>💰 Round Dynamics</div>
-<div class='tab-btn' data-tab='atob'>🔄 A→B Timing</div>
+<div class='tab-btn' data-tab='atob'>🔄 A→B Timing (Quarterly)</div>
+    <div class='tab-btn' data-tab='atobyear'>📅 A→B Timing (Yearly)</div>
+    <div class='tab-btn' data-tab='s2ayear'>📅 Seed→A Timing (Yearly)</div>
     <div class='tab-btn' data-tab='acqdyn'>🎯 Acquisition Speed</div>
     <div class='tab-btn' data-tab='acqcandle'>📦 Exit Speed Dist.</div>
     <div class='tab-btn' data-tab='exitraise'>💸 Exit vs Raised</div>
@@ -118,7 +120,7 @@ h1{font-size:1.2rem;font-weight:700;color:#111827;margin-bottom:3px}
     <div class="leg" data-cat="exit"><span class="dot-icon" style="background:#4B5563;border-color:#374151"></span>Exited</div>
   </div>
   <div class="search-wrap"><input id="search" type="text" placeholder="Search company..." autocomplete="off"><span class="search-clear" id="search-clear">x</span></div>
-  <div class="presets"><span>Y axis:</span><button class="preset" data-max="500">$0.5B</button><button class="preset" data-max="1000">$1B</button><button class="preset" data-max="3000">$3B</button><button class="preset active" data-max="10000">$10B</button><button class="preset" data-max="35000">$35B</button></div>
+  <div class="presets" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span>Y axis:</span><button class="preset" data-max="500">$0.5B</button><button class="preset" data-max="1000">$1B</button><button class="preset" data-max="3000">$3B</button><button class="preset active" data-max="10000">$10B</button><button class="preset" data-max="35000">$35B</button><span style="margin-left:12px;color:#9ca3af">|</span><button id="round-toggle" style="padding:3px 11px;border-radius:20px;border:1.5px solid #e5e7eb;background:#fff;font-size:.72rem;font-weight:600;cursor:pointer;color:#6b7280;transition:all .15s">Show round</button></div>
   <div id="wrap"><svg id="chart" viewBox="0 0 1000 570" xmlns="http://www.w3.org/2000/svg"></svg><div id="tip"></div></div>
   <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:.75rem;color:#374151"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#F59E0B;border:2px solid #B45309"></span><span><b>Amber</b> = valuation &gt;$2B, no round since 2022</span></div>
   <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:.75rem;color:#374151"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:transparent;border:2px dashed #2563EB"></span><span><b>Dashed</b> = valuation estimated</span></div>
@@ -230,6 +232,32 @@ h1{font-size:1.2rem;font-weight:700;color:#111827;margin-bottom:3px}
   <span>● Bubble size = # of deals</span>
 </div>
     </div>
+    <div class='sheet' id='sheet-atobyear'>
+<h1>Israeli Cyber: A→B Round Size vs. Time (Annual)</h1>
+<p class="sub" style="margin-bottom:14px">Series B round size ($M) vs. months since Series A. Each year one bubble. Hover for details.</p>
+<div id="atobyear-legend" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px"></div>
+<div style="position:relative">
+  <svg id="atobyear-chart" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block"></svg>
+  <div id="atobyear-tip" style="position:absolute;background:rgba(17,24,39,.94);color:#f9fafb;border-radius:10px;padding:10px 13px;font-size:11.5px;line-height:1.55;pointer-events:none;opacity:0;transition:opacity .15s;min-width:160px;max-width:220px;z-index:20"></div>
+</div>
+<div style="display:flex;gap:16px;margin-top:8px;font-size:.73rem;color:#9ca3af">
+  <span>● 104 A→B pairs, 2020–2026</span>
+  <span>● Bubble size = # of deals</span>
+</div>
+    </div>
+    <div class='sheet' id='sheet-s2ayear'>
+<h1>Israeli Cyber: Seed→A Round Size vs. Time (Annual)</h1>
+<p class="sub" style="margin-bottom:14px">Series A round size ($M) vs. months since Seed. Each year one bubble. Hover for details.</p>
+<div id="s2ayear-legend" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px"></div>
+<div style="position:relative">
+  <svg id="s2ayear-chart" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block"></svg>
+  <div id="s2ayear-tip" style="position:absolute;background:rgba(17,24,39,.94);color:#f9fafb;border-radius:10px;padding:10px 13px;font-size:11.5px;line-height:1.55;pointer-events:none;opacity:0;transition:opacity .15s;min-width:160px;max-width:220px;z-index:20"></div>
+</div>
+<div style="display:flex;gap:16px;margin-top:8px;font-size:.73rem;color:#9ca3af">
+  <span>● 267 Seed→A pairs, 2016–2026</span>
+  <span>● Bubble size = # of deals</span>
+</div>
+    </div>
     <div class='sheet' id='sheet-acqcandle'>
 <h1>Israeli Cyber: Exits — Seed to Acquisition Speed Distribution</h1>
 <p class="sub">P10–P90 range per year · Box = P25–P75 · Line = Median · Dots = individual exits · 2020–2026</p>
@@ -259,7 +287,7 @@ h1{font-size:1.2rem;font-weight:700;color:#111827;margin-bottom:3px}
     </div>
 </div>
 <script>
-var networkReady=false, coinvReady=false, timingReady=false, roundDynReady=false, atobReady=false, acqDynReady=false, acqCandleReady=false, exitRaiseReady=false;
+var networkReady=false, coinvReady=false, timingReady=false, roundDynReady=false, atobReady=false, atobYearReady=false, s2aYearReady=false, acqDynReady=false, acqCandleReady=false, exitRaiseReady=false;
 document.querySelectorAll('.tab-btn').forEach(function(btn){
   btn.addEventListener('click',function(){
     document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
@@ -271,6 +299,8 @@ document.querySelectorAll('.tab-btn').forEach(function(btn){
     if(btn.dataset.tab==='timing'&&!timingReady){timingReady=true;initTimingChart();}
     if(btn.dataset.tab==='rounddyn'&&!roundDynReady){roundDynReady=true;initRoundDyn();}
     if(btn.dataset.tab==='atob'&&!atobReady){atobReady=true;initAtob();}
+    if(btn.dataset.tab==='atobyear'&&!atobYearReady){atobYearReady=true;initAtobYear();}
+    if(btn.dataset.tab==='s2ayear'&&!s2aYearReady){s2aYearReady=true;initS2aYear();}
     if(btn.dataset.tab==='acqdyn'&&!acqDynReady){acqDynReady=true;initAcqDyn();}
     if(btn.dataset.tab==='acqcandle'&&!acqCandleReady){acqCandleReady=true;initAcqCandle();}
     if(btn.dataset.tab==='exitraise'&&!exitRaiseReady){exitRaiseReady=true;initExitRaise();}
@@ -306,6 +336,7 @@ const ML = 72, MR = 30, MT = 30, MB = 65;
 const PW = W - ML - MR, PH = H - MT - MB;
 let ymax = 10000;
 let searchTerm = "";
+let showRound = false;
 
 const STYLE = {
   active: {fill:'#D1D5DB', stroke:'#9ca3af', r:4,   opacity:0.7, order:0},
@@ -370,7 +401,7 @@ function render() {
   for (let v = 0; v <= ymax; v += gridStep) {
     const y = ys(v);
     el('line', {x1:ML, x2:W-MR, y1:y, y2:y, class: v===0 ? 'axisline' : 'gridline'}, svg);
-    const lbl = v === 0 ? '$0' : `$${v/1000}B`;
+    const lbl = v === 0 ? '$0' : (v === ymax && ymax < 35000) ? `>$${v/1000}B` : `$${v/1000}B`;
     txt(lbl, {x:ML-8, y:y+4, 'text-anchor':'end', class:'tick-label'}, svg);
   }
 
@@ -406,12 +437,12 @@ function render() {
     const isStale = d.company in STALE_UNICORNS;
     const r      = matched ? s.r * 1.7 : isStale ? s.r * 1.2 : s.r;
     const bgFade = activeFunds.size > 0 && !inActiveFund;
-    const op     = faded ? 0.08 : bgFade ? 0.15 : s.opacity;
+    const op     = faded ? 0.08 : bgFade ? 0.50 : s.opacity;
     const sw     = matched ? '2.5' : isStale ? '2.5' : '1.2';
     const fill   = isStale ? STALE_COLOR : s.fill;
     const stroke = matched ? '#f59e0b' : isStale ? STALE_STROKE : s.stroke;
     const dashArr = d.estimated ? '5,4' : 'none';
-    const estOp  = d.estimated ? (bgFade ? 0.15 : Math.max(op, 0.82)) : op;
+    const estOp  = d.estimated ? (bgFade ? 0.50 : Math.max(op, 0.82)) : op;
     const c = el('circle', {
       cx, cy, r: d.estimated ? r * 1.15 : r,
       fill: d.estimated ? '#94a3b8' : fill,
@@ -447,7 +478,7 @@ function render() {
         .replace(' Solutions', '').replace(/ Technology$/, '');
       const coRounds = FUND_ROUNDS[d.company] || {};
       const matchedFund = fbadges.find(f => activeFunds.has(f) && coRounds[f]);
-      const roundSuffix = matchedFund ? `, ${coRounds[matchedFund]}` : '';
+      const roundSuffix = (showRound && matchedFund) ? `, ${coRounds[matchedFund]}` : '';
       txt(name + roundSuffix, {
         x: cx, y: cy - 10,
         'text-anchor': 'middle', class: 'company-label',
@@ -549,6 +580,16 @@ document.querySelectorAll('.leg').forEach(el => {
     else                 { active.add(cat);    el.classList.remove('off'); }
     render();
   });
+});
+
+const roundToggleBtn = document.getElementById('round-toggle');
+roundToggleBtn.addEventListener('click', () => {
+  showRound = !showRound;
+  roundToggleBtn.style.background = showRound ? '#f3f0ff' : '#fff';
+  roundToggleBtn.style.borderColor = showRound ? '#8b5cf6' : '#e5e7eb';
+  roundToggleBtn.style.color = showRound ? '#7c3aed' : '#6b7280';
+  roundToggleBtn.textContent = showRound ? 'Hide round' : 'Show round';
+  render();
 });
 
 render();
@@ -1560,6 +1601,219 @@ function initAtob(){
     +'<span style="font-size:.72rem;color:#9ca3af;margin-left:14px">Bubble size = # of pairs</span>';
 }
 
+
+function initAtobYear(){
+  // Yearly aggregates weighted from quarterly data
+  var BUBBLES=[
+    {"label":"2020","year":2020,"n":25,"mx":21.6,"ma":21.9,"aa":24.4,"fp":20},
+    {"label":"2021","year":2021,"n":21,"mx":21.3,"ma":32.4,"aa":39.3,"fp":29},
+    {"label":"2022","year":2022,"n":13,"mx":15.9,"ma":43.1,"aa":55.9,"fp":31},
+    {"label":"2023","year":2023,"n":9,"mx":30.1,"ma":37.8,"aa":34.7,"fp":0},
+    {"label":"2024","year":2024,"n":9,"mx":28.0,"ma":36.3,"aa":36.2,"fp":11},
+    {"label":"2025","year":2025,"n":20,"mx":26.1,"ma":58.3,"aa":57.6,"fp":15},
+    {"label":"2026","year":2026,"n":7,"mx":20.0,"ma":82.1,"aa":101.8,"fp":14}
+  ];
+  var HIGHLIGHT='#e11d48';
+  var GREY='#9ca3af';
+
+  var svg=document.getElementById('atobyear-chart');
+  var tip=document.getElementById('atobyear-tip');
+  var NS='http://www.w3.org/2000/svg';
+  var W=880,H=520,ML=72,MR=50,MT=40,MB=62;
+  var PW=W-ML-MR, PH=H-MT-MB;
+
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  svg.style.overflow='visible';
+
+  function mk(tag,attrs,txt){
+    var el=document.createElementNS(NS,tag);
+    Object.keys(attrs).forEach(function(k){el.setAttribute(k,attrs[k]);});
+    if(txt!==undefined)el.textContent=txt; return el;
+  }
+
+  var XMIN=5,XMAX=52,YMIN=0,YMAX=115;
+  function xs(v){return ML+(v-XMIN)/(XMAX-XMIN)*PW;}
+  function ys(v){return MT+PH-(v-YMIN)/(YMAX-YMIN)*PH;}
+
+  svg.innerHTML='';
+  svg.appendChild(mk('rect',{width:W,height:H,fill:'#fafafa'}));
+
+  // Grid X
+  [10,20,30,40,50].forEach(function(v){
+    var x=xs(v);
+    svg.appendChild(mk('line',{x1:x,x2:x,y1:MT,y2:MT+PH,stroke:'#e5e7eb','stroke-width':'1','stroke-dasharray':'4,3'}));
+    svg.appendChild(mk('text',{x:x,y:MT+PH+18,'text-anchor':'middle',fill:'#9ca3af','font-size':'11','font-family':'inherit'},v+'m'));
+  });
+  // Grid Y
+  [0,25,50,75,100].forEach(function(v){
+    var y=ys(v);
+    svg.appendChild(mk('line',{x1:ML,x2:ML+PW,y1:y,y2:y,stroke:v===0?'#94a3b8':'#e5e7eb','stroke-width':v===0?'1.5':'1','stroke-dasharray':v===0?'none':'4,3'}));
+    svg.appendChild(mk('text',{x:ML-8,y:y+4,'text-anchor':'end',fill:'#9ca3af','font-size':'11','font-family':'inherit'},'$'+v+'M'));
+  });
+
+  // Axis labels
+  svg.appendChild(mk('text',{x:ML+PW/2,y:H-8,'text-anchor':'middle',fill:'#374151','font-size':'12','font-weight':'600','font-family':'inherit'},'Median months from Series A to Series B'));
+  svg.appendChild(mk('text',{transform:'translate(14,'+(MT+PH/2)+') rotate(-90)','text-anchor':'middle',fill:'#374151','font-size':'12','font-weight':'600','font-family':'inherit'},'Median Series B Round ($M)'));
+
+  // Direction hints
+  svg.appendChild(mk('text',{x:ML+PW-2,y:MT+PH+18,'text-anchor':'end',fill:'#d1d5db','font-size':'10','font-style':'italic','font-family':'inherit'},'← faster'));
+  svg.appendChild(mk('text',{x:ML-8,y:MT-10,'text-anchor':'middle',fill:'#d1d5db','font-size':'10','font-style':'italic','font-family':'inherit'},'↑ bigger'));
+
+  function drawBubble(b){
+    var x=xs(b.mx), y=ys(b.ma);
+    var isHL=b.year>=2025;
+    var col=isHL?HIGHLIGHT:GREY;
+    var r=Math.max(14, 10+b.n*1.2);
+
+    svg.appendChild(mk('circle',{cx:x+1.5,cy:y+1.5,r:r,fill:'rgba(0,0,0,0.07)'}));
+    var circ=mk('circle',{cx:x,cy:y,r:r,fill:col,stroke:'#fff','stroke-width':'2',cursor:'pointer',opacity:isHL?'0.95':'0.55'});
+    var yLbl="'"+String(b.year).slice(2);
+    var lbl=mk('text',{x:x,y:y-r-4,'text-anchor':'middle',fill:'#111827','font-size':'11','font-weight':'700','font-family':'inherit','pointer-events':'none'},yLbl);
+
+    function showTip(e){
+      circ.setAttribute('r',r+3);circ.setAttribute('opacity','1');
+      var h='<b style="color:'+(isHL?col:'#f9fafb')+';font-size:13px">'+b.label+'</b>';
+      h+='<div style="color:#9ca3af;font-size:10px;margin-bottom:4px">'+b.n+' A→B pairs</div>';
+      h+='<div style="display:flex;gap:10px;justify-content:space-between"><span style="color:#9ca3af">Median B round</span><span style="color:#f9fafb;font-weight:600">$'+b.ma+'M</span></div>';
+      h+='<div style="display:flex;gap:10px;justify-content:space-between"><span style="color:#9ca3af">Avg B round</span><span style="color:#f9fafb;font-weight:500">$'+b.aa+'M</span></div>';
+      h+='<div style="display:flex;gap:10px;justify-content:space-between"><span style="color:#9ca3af">Median timing</span><span style="color:#f9fafb;font-weight:600">'+b.mx+'m</span></div>';
+      h+='<div style="display:flex;gap:10px;justify-content:space-between"><span style="color:#9ca3af">Raised <12m</span><span style="color:#f9fafb;font-weight:500">'+b.fp+'%</span></div>';
+      tip.innerHTML=h; tip.style.opacity='1';
+      var rect=document.getElementById('sheet-atobyear').getBoundingClientRect();
+      var tx=e.clientX-rect.left+14, ty=e.clientY-rect.top+14;
+      if(tx+tip.offsetWidth>rect.width-4) tx=e.clientX-rect.left-tip.offsetWidth-14;
+      tip.style.left=tx+'px'; tip.style.top=ty+'px';
+    }
+    function moveTip(e){
+      var rect=document.getElementById('sheet-atobyear').getBoundingClientRect();
+      var tx=e.clientX-rect.left+14, ty=e.clientY-rect.top+14;
+      if(tx+tip.offsetWidth>rect.width-4) tx=e.clientX-rect.left-tip.offsetWidth-14;
+      tip.style.left=tx+'px'; tip.style.top=ty+'px';
+    }
+    circ.addEventListener('mouseenter',showTip);
+    circ.addEventListener('mousemove',moveTip);
+    circ.addEventListener('mouseleave',function(){circ.setAttribute('r',r);circ.setAttribute('opacity',isHL?'0.95':'0.55');tip.style.opacity='0';});
+    svg.appendChild(circ);
+    svg.appendChild(lbl);
+  }
+
+  BUBBLES.filter(function(b){return b.year<2025;}).forEach(drawBubble);
+  BUBBLES.filter(function(b){return b.year>=2025;}).forEach(drawBubble);
+
+  // Legend
+  var legEl=document.getElementById('atobyear-legend');
+  legEl.innerHTML='<span style="display:inline-flex;align-items:center;gap:5px;font-size:.73rem;color:#9ca3af"><span style="width:12px;height:12px;border-radius:50%;background:#9ca3af;display:inline-block"></span>2020–2024</span>'
+    +'<span style="display:inline-flex;align-items:center;gap:5px;font-size:.73rem;color:#e11d48;margin-left:14px"><span style="width:12px;height:12px;border-radius:50%;background:#e11d48;display:inline-block"></span>2025–2026</span>'
+    +'<span style="font-size:.72rem;color:#9ca3af;margin-left:14px">Bubble size = # of pairs</span>';
+}
+
+function initS2aYear(){
+  // Yearly data: mx=median months Seed→A (p50), ma=median A round size, aa=avg A round size
+  var BUBBLES=[
+    {"label":"2016","year":2016,"n":22,"mx":19.1,"ma":8.5,"aa":9.6},
+    {"label":"2017","year":2017,"n":23,"mx":19.3,"ma":5.6,"aa":5.7},
+    {"label":"2018","year":2018,"n":29,"mx":28.6,"ma":10.0,"aa":9.9},
+    {"label":"2019","year":2019,"n":27,"mx":25.6,"ma":10.0,"aa":10.2},
+    {"label":"2020","year":2020,"n":23,"mx":20.9,"ma":10.8,"aa":12.0},
+    {"label":"2021","year":2021,"n":38,"mx":27.7,"ma":16.0,"aa":23.8},
+    {"label":"2022","year":2022,"n":27,"mx":17.3,"ma":25.0,"aa":29.3},
+    {"label":"2023","year":2023,"n":22,"mx":17.1,"ma":18.0,"aa":18.4},
+    {"label":"2024","year":2024,"n":21,"mx":25.7,"ma":18.0,"aa":20.6},
+    {"label":"2025","year":2025,"n":37,"mx":12.2,"ma":30.0,"aa":31.5},
+    {"label":"2026","year":2026,"n":18,"mx":18.7,"ma":30.0,"aa":32.9}
+  ];
+  var HIGHLIGHT='#e11d48';
+  var GREY='#9ca3af';
+
+  var svg=document.getElementById('s2ayear-chart');
+  var tip=document.getElementById('s2ayear-tip');
+  var NS='http://www.w3.org/2000/svg';
+  var W=880,H=520,ML=72,MR=50,MT=40,MB=62;
+  var PW=W-ML-MR, PH=H-MT-MB;
+
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  svg.style.overflow='visible';
+
+  function mk(tag,attrs,txt){
+    var el=document.createElementNS(NS,tag);
+    Object.keys(attrs).forEach(function(k){el.setAttribute(k,attrs[k]);});
+    if(txt!==undefined)el.textContent=txt; return el;
+  }
+
+  var XMIN=5,XMAX=38,YMIN=0,YMAX=42;
+  function xs(v){return ML+(v-XMIN)/(XMAX-XMIN)*PW;}
+  function ys(v){return MT+PH-(v-YMIN)/(YMAX-YMIN)*PH;}
+
+  svg.innerHTML='';
+  svg.appendChild(mk('rect',{width:W,height:H,fill:'#fafafa'}));
+
+  // Grid X
+  [10,15,20,25,30,35].forEach(function(v){
+    var x=xs(v);
+    svg.appendChild(mk('line',{x1:x,x2:x,y1:MT,y2:MT+PH,stroke:'#e5e7eb','stroke-width':'1','stroke-dasharray':'4,3'}));
+    svg.appendChild(mk('text',{x:x,y:MT+PH+18,'text-anchor':'middle',fill:'#9ca3af','font-size':'11','font-family':'inherit'},v+'m'));
+  });
+  // Grid Y
+  [0,10,20,30,40].forEach(function(v){
+    var y=ys(v);
+    svg.appendChild(mk('line',{x1:ML,x2:ML+PW,y1:y,y2:y,stroke:v===0?'#94a3b8':'#e5e7eb','stroke-width':v===0?'1.5':'1','stroke-dasharray':v===0?'none':'4,3'}));
+    svg.appendChild(mk('text',{x:ML-8,y:y+4,'text-anchor':'end',fill:'#9ca3af','font-size':'11','font-family':'inherit'},'$'+v+'M'));
+  });
+
+  // Axis labels
+  svg.appendChild(mk('text',{x:ML+PW/2,y:H-8,'text-anchor':'middle',fill:'#374151','font-size':'12','font-weight':'600','font-family':'inherit'},'Median months from Seed to Series A'));
+  svg.appendChild(mk('text',{transform:'translate(14,'+(MT+PH/2)+') rotate(-90)','text-anchor':'middle',fill:'#374151','font-size':'12','font-weight':'600','font-family':'inherit'},'Median Series A Round ($M)'));
+
+  // Direction hints
+  svg.appendChild(mk('text',{x:ML+PW-2,y:MT+PH+18,'text-anchor':'end',fill:'#d1d5db','font-size':'10','font-style':'italic','font-family':'inherit'},'← faster'));
+  svg.appendChild(mk('text',{x:ML-8,y:MT-10,'text-anchor':'middle',fill:'#d1d5db','font-size':'10','font-style':'italic','font-family':'inherit'},'↑ bigger'));
+
+  function drawBubble(b){
+    var x=xs(b.mx), y=ys(b.ma);
+    var isHL=b.year>=2025;
+    var col=isHL?HIGHLIGHT:GREY;
+    var r=Math.max(14, 10+b.n*1.0);
+
+    svg.appendChild(mk('circle',{cx:x+1.5,cy:y+1.5,r:r,fill:'rgba(0,0,0,0.07)'}));
+    var circ=mk('circle',{cx:x,cy:y,r:r,fill:col,stroke:'#fff','stroke-width':'2',cursor:'pointer',opacity:isHL?'0.95':'0.55'});
+    var yLbl="'"+String(b.year).slice(2);
+    var lbl=mk('text',{x:x,y:y-r-4,'text-anchor':'middle',fill:'#111827','font-size':'11','font-weight':'700','font-family':'inherit','pointer-events':'none'},yLbl);
+
+    function showTip(e){
+      circ.setAttribute('r',r+3);circ.setAttribute('opacity','1');
+      var h='<b style="color:'+(isHL?col:'#f9fafb')+';font-size:13px">'+b.label+'</b>';
+      h+='<div style="color:#9ca3af;font-size:10px;margin-bottom:4px">'+b.n+' Seed→A pairs</div>';
+      h+='<div style="display:flex;gap:10px;justify-content:space-between"><span style="color:#9ca3af">Median A round</span><span style="color:#f9fafb;font-weight:600">$'+b.ma+'M</span></div>';
+      h+='<div style="display:flex;gap:10px;justify-content:space-between"><span style="color:#9ca3af">Avg A round</span><span style="color:#f9fafb;font-weight:500">$'+b.aa+'M</span></div>';
+      h+='<div style="display:flex;gap:10px;justify-content:space-between"><span style="color:#9ca3af">Median timing</span><span style="color:#f9fafb;font-weight:600">'+b.mx+'m</span></div>';
+      tip.innerHTML=h; tip.style.opacity='1';
+      var rect=document.getElementById('sheet-s2ayear').getBoundingClientRect();
+      var tx=e.clientX-rect.left+14, ty=e.clientY-rect.top+14;
+      if(tx+tip.offsetWidth>rect.width-4) tx=e.clientX-rect.left-tip.offsetWidth-14;
+      tip.style.left=tx+'px'; tip.style.top=ty+'px';
+    }
+    function moveTip(e){
+      var rect=document.getElementById('sheet-s2ayear').getBoundingClientRect();
+      var tx=e.clientX-rect.left+14, ty=e.clientY-rect.top+14;
+      if(tx+tip.offsetWidth>rect.width-4) tx=e.clientX-rect.left-tip.offsetWidth-14;
+      tip.style.left=tx+'px'; tip.style.top=ty+'px';
+    }
+    circ.addEventListener('mouseenter',showTip);
+    circ.addEventListener('mousemove',moveTip);
+    circ.addEventListener('mouseleave',function(){circ.setAttribute('r',r);circ.setAttribute('opacity',isHL?'0.95':'0.55');tip.style.opacity='0';});
+    svg.appendChild(circ);
+    svg.appendChild(lbl);
+  }
+
+  BUBBLES.filter(function(b){return b.year<2025;}).forEach(drawBubble);
+  BUBBLES.filter(function(b){return b.year>=2025;}).forEach(drawBubble);
+
+  // Legend
+  var legEl=document.getElementById('s2ayear-legend');
+  legEl.innerHTML='<span style="display:inline-flex;align-items:center;gap:5px;font-size:.73rem;color:#9ca3af"><span style="width:12px;height:12px;border-radius:50%;background:#9ca3af;display:inline-block"></span>2016–2024</span>'
+    +'<span style="display:inline-flex;align-items:center;gap:5px;font-size:.73rem;color:#e11d48;margin-left:14px"><span style="width:12px;height:12px;border-radius:50%;background:#e11d48;display:inline-block"></span>2025–2026</span>'
+    +'<span style="font-size:.72rem;color:#9ca3af;margin-left:14px">Bubble size = # of pairs</span>';
+}
 
 function initAcqCandle(){
   function mk(tag,attrs,txt){
